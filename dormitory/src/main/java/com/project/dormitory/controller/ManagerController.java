@@ -14,7 +14,7 @@ import com.project.dormitory.model.CheckInOut;
 public class ManagerController {
 
     @GetMapping("/dashboard")
-    public ResponseEntity<String> dashboard() {
+    public String dashboard() {
         return new String();
     }
 
