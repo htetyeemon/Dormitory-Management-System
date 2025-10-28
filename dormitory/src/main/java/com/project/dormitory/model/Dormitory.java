@@ -3,6 +3,8 @@ package com.project.dormitory.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Dormitory {
     @Id
@@ -14,11 +16,8 @@ public class Dormitory {
     private String phoneNum;
     private String email;
 
-    @ManyToOne
-    @JoinColumn(name = "mgr_id")
-    private DormitoryManager manager;
-
     @OneToMany(mappedBy = "dormitory")
+    @JsonIgnore
     private List<Room> rooms;
 
     // Getters and Setters
@@ -39,9 +38,6 @@ public class Dormitory {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
-
-    public DormitoryManager getManager() { return manager; }
-    public void setManager(DormitoryManager manager) { this.manager = manager; }
 
     public List<Room> getRooms() { return rooms; }
     public void setRooms(List<Room> rooms) { this.rooms = rooms; }

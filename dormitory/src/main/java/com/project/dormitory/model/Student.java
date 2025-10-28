@@ -3,6 +3,8 @@ package com.project.dormitory.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class Student {
     @Id
@@ -12,9 +14,9 @@ public class Student {
     private String major;
     private String email;
     private String phoneNum;
-    private String status;
+    
     /////
-
+    @JsonIgnore
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "roommate_id")
     private Student roommate;
@@ -23,16 +25,20 @@ public class Student {
     @ManyToOne
     @JoinColumns({
         @JoinColumn(name = "room_num", referencedColumnName = "roomNum"),
-        @JoinColumn(name = "dorm_id_room", referencedColumnName = "dorm_id")
+        @JoinColumn(name = "dorm_id", referencedColumnName = "dorm_id")
     })
+    @JsonIgnore
     private Room room;
 
+    @JsonIgnore
     @OneToOne(mappedBy = "roommate")
     private Student pairedStudent;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "student")
     private List<ComplaintRepair> complaints;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "student")
     private List<CheckInOut> checkInOuts;
 
@@ -51,9 +57,6 @@ public class Student {
 
     public String getPhoneNum() { return phoneNum; }
     public void setPhoneNum(String phoneNum) { this.phoneNum = phoneNum; }
-
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
 
     public Student getRoommate() { return roommate; }
     public void setRoommate(Student roommate) { this.roommate = roommate; }

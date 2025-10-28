@@ -3,6 +3,8 @@ package com.project.dormitory.model;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 @IdClass(RoomId.class)
 public class Room {
@@ -12,12 +14,13 @@ public class Room {
     @Id
     @ManyToOne
     @JoinColumn(name = "dorm_id")
+    @JsonIgnore
     private Dormitory dormitory;
 
     private Integer floor;
     private String roomType;
     private String block;
-    private Integer occupancy;
+    private Integer occupacy;
     private String lastInspect;
     private String duration;
 
@@ -40,8 +43,8 @@ public class Room {
     public String getBlock() { return block; }
     public void setBlock(String block) { this.block = block; }
 
-    public Integer getOccupancy() { return occupancy; }
-    public void setOccupancy(Integer occupancy) { this.occupancy = occupancy; }
+    public Integer getOccupancy() { return occupacy; }
+    public void setOccupancy(Integer occupancy) { this.occupacy = occupancy; }
 
     public String getLastInspect() { return lastInspect; }
     public void setLastInspect(String lastInspect) { this.lastInspect = lastInspect; }

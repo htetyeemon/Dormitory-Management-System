@@ -3,6 +3,12 @@ package com.project.dormitory.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.project.dormitory.json.LocalDateDeserializer;
+import com.project.dormitory.json.LocalDateSerializer;
+
 @Entity
 public class CheckInOut {
     @Id
@@ -11,8 +17,11 @@ public class CheckInOut {
 
     @ManyToOne
     @JoinColumn(name = "stu_id")
+    @JsonIgnore
     private Student student;
 
+    @JsonSerialize(using = LocalDateSerializer.class)
+    @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate date;
     private String type;
 

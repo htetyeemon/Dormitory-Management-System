@@ -3,6 +3,8 @@ package com.project.dormitory.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity
 public class ComplaintRepair {
     @Id
@@ -17,6 +19,7 @@ public class ComplaintRepair {
 
     @ManyToOne
     @JoinColumn(name = "stu_id")
+    @JsonIgnore
     private Student student;
 
     // Getters and Setters
