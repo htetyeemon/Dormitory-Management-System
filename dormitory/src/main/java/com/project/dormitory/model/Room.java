@@ -18,7 +18,6 @@ public class Room {
     private Dormitory dormitory;
 
     private Integer floor;
-    private String roomType;
     private String block;
     private Integer occupacy;
     private String lastInspect;
@@ -36,9 +35,6 @@ public class Room {
 
     public Integer getFloor() { return floor; }
     public void setFloor(Integer floor) { this.floor = floor; }
-
-    public String getRoomType() { return roomType; }
-    public void setRoomType(String roomType) { this.roomType = roomType; }
 
     public String getBlock() { return block; }
     public void setBlock(String block) { this.block = block; }

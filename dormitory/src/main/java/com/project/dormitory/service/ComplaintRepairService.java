@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.dormitory.model.ComplaintRepair;
 import com.project.dormitory.model.Student;
@@ -38,12 +39,32 @@ public class ComplaintRepairService {
             complaintRepair.setServiceType(serviceType);
             complaintRepair.setDateTime(LocalDateTime.now());
             complaintRepair.setPriorityLvl(priorityLvl);
-            complaintRepair.setStatus("Pending");
+            complaintRepair.setStatus("PENDING");
             complaintRepair.setStudent(student);
             
             return complaintRepairRepository.save(complaintRepair);
         }
         return null;
+    }
+
+    public Long getPendingComplaintsCount() {
+    return (long) complaintRepairRepository.findByStatusOrderByDateTimeDesc("PENDING").size();
+    }
+
+    public List<ComplaintRepair> getComplaintsByDormitory(Long dormId) {
+        return complaintRepairRepository.findByDormitoryId(dormId);
+    }
+    
+    public List<ComplaintRepair> getPendingComplaints() {
+        return complaintRepairRepository.findByStatusOrderByDateTimeDesc("PENDING");
+    }
+    
+    @Transactional
+    public void updateComplaintStatus(Long complaintId, String status) {
+        ComplaintRepair complaint = complaintRepairRepository.findById(complaintId)
+            .orElseThrow(() -> new RuntimeException("Complaint not found"));
+        complaint.setStatus(status);
+        complaintRepairRepository.save(complaint);
     }
 
 

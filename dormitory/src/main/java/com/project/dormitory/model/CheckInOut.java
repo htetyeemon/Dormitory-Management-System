@@ -24,7 +24,14 @@ public class CheckInOut {
     @JsonDeserialize(using = LocalDateDeserializer.class)
     private LocalDate date;
     private String type;
+    private String status;
 
+    public String getStatus() {
+        return status;
+    }
+    public void setStatus(String status) {
+        this.status = status;
+    }
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }

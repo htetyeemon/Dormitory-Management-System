@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.project.dormitory.model.CheckInOut;
 import com.project.dormitory.model.Student;
@@ -36,9 +37,38 @@ public class CheckInOutService {
             checkInOut.setStudent(student);
             checkInOut.setType(type);
             checkInOut.setDate(date);
+            checkInOut.setStatus("PENDING");
             return checkInOutRepository.save(checkInOut);
         }
         return null;
+    }
+
+    public Long getPendingRequestsCount() {
+    return (long) checkInOutRepository.findByStatusOrderByDateDesc("PENDING").size();
+    }
+
+    public List<CheckInOut> getCheckInOutRequests(Long dormId) {
+        return checkInOutRepository.findByDormitoryId(dormId);
+    }
+    
+    public List<CheckInOut> getPendingRequests() {
+        return checkInOutRepository.findByStatusOrderByDateDesc("PENDING");
+    }
+    
+    @Transactional
+    public void approveRequest(Long requestId) {
+        CheckInOut request = checkInOutRepository.findById(requestId)
+            .orElseThrow(() -> new RuntimeException("Request not found"));
+        request.setStatus("APPROVED");
+        checkInOutRepository.save(request);
+    }
+    
+    @Transactional
+    public void rejectRequest(Long requestId) {
+        CheckInOut request = checkInOutRepository.findById(requestId)
+            .orElseThrow(() -> new RuntimeException("Request not found"));
+        request.setStatus("REJECTED");
+        checkInOutRepository.save(request);
     }
 
 }

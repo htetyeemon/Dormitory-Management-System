@@ -35,19 +35,19 @@ INSERT INTO dormitory_manager (id, name, phone, email, dorm_id) VALUES
 
 -- Insert Rooms (distributed across all 13 dormitories)
 INSERT INTO room (room_num, dorm_id, floor, room_type, block, occupacy, last_inspect, duration) VALUES
-('101', 101, 1, 'Single', 'A', 1, '2025-01-22', 1),
+('101', 101, 1, 'Single', 'A', 2, '2025-01-22', 1),
 ('102', 102, 2, 'Double', 'B', 2, '2025-02-27', 2),
-('103', 103, 3, 'Single', 'C', 1, '2025-03-15', 1),
+('103', 103, 3, 'Single', 'C', 2, '2025-03-15', 1),
 ('104', 104, 4, 'Double', 'D', 2, '2025-03-22', 2),
-('105', 105, 1, 'Single', 'A', 1, '2025-03-31', 1),
+('105', 105, 1, 'Single', 'A', 2, '2025-03-31', 1),
 ('106', 106, 2, 'Double', 'B', 2, '2025-04-01', 2),
-('107', 201, 3, 'Single', 'C', 1, '2025-04-12', 1),
-('108', 202, 4, 'Double', 'D', 2, '2025-04-18', 2),
-('201', 203, 1, 'Single', 'A', 1, '2025-04-21', 1),
-('202', 204, 2, 'Double', 'B', 2, '2025-04-29', 2),
-('203', 205, 3, 'Single', 'C', 1, '2025-05-15', 1),
-('204', 206, 4, 'Double', 'D', 2, '2025-05-20', 2),
-('205', 207, 1, 'Single', 'A', 1, '2025-05-25', 1);
+('107', 201, 3, 'Single', 'C', 2, '2025-04-12', 1),
+('108', 202, 4, 'Double', 'D', 0, '2025-04-18', 2),
+('201', 203, 1, 'Single', 'A', 0, '2025-04-21', 1),
+('202', 204, 2, 'Double', 'B', 0, '2025-04-29', 2),
+('203', 205, 3, 'Single', 'C', 0, '2025-05-15', 1),
+('204', 206, 4, 'Double', 'D', 0, '2025-05-20', 2),
+('205', 207, 1, 'Single', 'A', 0, '2025-05-25', 1);
 
 -- Insert Students WITHOUT roommate_id first (to avoid circular reference)
 INSERT INTO student (id, name, major, email, phone_num, dorm_id, room_num) VALUES

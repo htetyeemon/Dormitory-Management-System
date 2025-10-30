@@ -29,10 +29,9 @@ public class DashboardService {
         }
 
         Room room = student.getRoom();
-        List<CheckInOut> recentActivities = checkInOutService.getRecentActivitiesByStudentId(studentId);
         List<ComplaintRepair> recentRequests = complaintRepairService.getRecentRequestsByStudentId(studentId);
-        List<Announcement> announcements = announcementService.getRecentAnnouncements();
+        List<Announcement> recentAnnouncements = announcementService.getRecentAnnouncements();
 
-        return new DashboardResponse(room, recentActivities, recentRequests, announcements);
+        return new DashboardResponse(room, recentRequests, recentAnnouncements);
     }
 }
