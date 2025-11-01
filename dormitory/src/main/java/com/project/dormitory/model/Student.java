@@ -14,6 +14,9 @@ public class Student {
     private String major;
     private String email;
     private String phoneNum;
+
+    @JsonIgnore
+    private String password;
     
     /////
     @JsonIgnore
@@ -57,6 +60,9 @@ public class Student {
 
     public String getPhoneNum() { return phoneNum; }
     public void setPhoneNum(String phoneNum) { this.phoneNum = phoneNum; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
     public Student getRoommate() { return roommate; }
     public void setRoommate(Student roommate) { this.roommate = roommate; }
