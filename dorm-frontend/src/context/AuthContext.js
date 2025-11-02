@@ -16,10 +16,9 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
     
-    if (token && userData) {
+    if (userData) {
       setUser(JSON.parse(userData));
     }
     setLoading(false);
@@ -28,13 +27,26 @@ export const AuthProvider = ({ children }) => {
   const login = async (id, password, userType) => {
     try {
       const response = await authAPI.login(id, password, userType);
-      const { token, user: userData } = response.data;
-      
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
-      
-      return { success: true };
+      const data = response.data;
+
+      if(data.success){
+          const userData={
+            id:data.userId,
+            name:data.name,
+            email: data.email,
+            userType: data.userType
+          }
+        
+        
+        // localStorage.setItem('token', token);
+        // localStorage.setItem('user', JSON.stringify(userData));
+        setUser(userData);
+        
+        return { success: true };
+      }
+      else{
+        return { success: false, message: data.message || 'login failed' };
+      }
     } catch (error) {
       return { 
         success: false, 
