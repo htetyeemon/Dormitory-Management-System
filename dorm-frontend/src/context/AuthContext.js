@@ -38,6 +38,7 @@ export const AuthProvider = ({ children }) => {
           }
         
         setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData)); 
         
         return { success: true };
       }

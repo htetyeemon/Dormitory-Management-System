@@ -6,6 +6,7 @@ import ManagerDashboard from './component/ManagerDashboard';
 import Login from './component/Login';
 import ProtectedRoute from './component/ProtectedRoute';
 import Layout from './component/Layout';
+import RoomPage from './component/RoomPage';
 import './App.css';
 
 function App() {
@@ -15,10 +16,17 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/student" element={
+          <Route path="/student/:studentId/dashboard" element={
             <ProtectedRoute>
               <Layout>
                 <StudentDashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/student/:studentId/room" element={
+            <ProtectedRoute>
+              <Layout>
+                <RoomPage />
               </Layout>
             </ProtectedRoute>
           } />
