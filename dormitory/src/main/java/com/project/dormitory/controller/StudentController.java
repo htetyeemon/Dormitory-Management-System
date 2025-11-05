@@ -138,4 +138,23 @@ public class StudentController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+    @GetMapping("/announcements/dateAsc")
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsByAsc() {
+        try {
+            List<Announcement> announcements = announcementService.getAllAnnouncementsByDateAsc();
+            return ResponseEntity.ok(announcements);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    @GetMapping("/announcements/dateDesc")
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsByDesc() {
+        try {
+            List<Announcement> announcements = announcementService.getAllAnnouncementsByDateDesc();
+            return ResponseEntity.ok(announcements);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

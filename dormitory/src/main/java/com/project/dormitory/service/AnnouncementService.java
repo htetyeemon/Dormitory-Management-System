@@ -81,4 +81,12 @@ public class AnnouncementService {
         return announcementRepository.findTop5ByOrderByDateTimeDesc();
     }
 
+    public List<Announcement> getAllAnnouncementsByDateAsc(){
+        return announcementRepository.findAllByOrderByDateTimeAsc();
+    }
+
+    public List<Announcement> getAllAnnouncementsByDateDesc(){
+        return announcementRepository.findAllByOrderByDateTimeDesc();
+    }
+
 }

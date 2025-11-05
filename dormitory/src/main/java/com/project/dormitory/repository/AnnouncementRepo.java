@@ -39,5 +39,9 @@ public interface AnnouncementRepo extends JpaRepository<Announcement,Long>{
      */
     void deleteByManagerId(Long managerId);
 
+    List<Announcement> findAllByOrderByDateTimeAsc();
+
+    List<Announcement> findAllByOrderByDateTimeDesc();
+
 }
 

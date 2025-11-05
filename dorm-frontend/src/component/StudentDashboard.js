@@ -9,6 +9,7 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { studentId } = useParams();
+  const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
 
   useEffect(() => {
     fetchDashboardData();
@@ -25,6 +26,20 @@ const StudentDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const toggleReadMore = (announcementId) => {
+    const newExpanded = new Set(expandedAnnouncements);
+    if (newExpanded.has(announcementId)) {
+      newExpanded.delete(announcementId);
+    } else {
+      newExpanded.add(announcementId);
+    }
+    setExpandedAnnouncements(newExpanded);
+  };
+
+  const needsReadMore = (description) => {
+    return description.length > 200;
   };
 
   const cardStyle = {
@@ -146,7 +161,7 @@ const StudentDashboard = () => {
               fontWeight: 700,
               marginBottom: '1.5rem',
             }}>
-              Announcements
+              Recent Announcements
             </h2>
             <div style={{ 
               display: 'flex', 
@@ -154,39 +169,76 @@ const StudentDashboard = () => {
               gap: '1.5rem',
               flex: 1,
             }}>
-              {dashboardData?.announcements?.map((announcement, index) => (
-                <div key={announcement.id} style={{
-                  borderTop: index > 0 ? '1px solid #e2e8f0' : 'none',
-                  paddingTop: index > 0 ? '1.5rem' : '0',
-                }}>
-                  <h3 style={{ 
-                    fontWeight: 700, 
-                    color: '#0f172a',
-                    fontSize: '1.1rem',
-                    marginBottom: '0.5rem',
+              {dashboardData?.announcements?.map((announcement, index) => {
+                const isExpanded = expandedAnnouncements.has(announcement.id);
+                const shouldShowReadMore = needsReadMore(announcement.description);
+
+                return (
+                  <div key={announcement.id} style={{
+                    borderTop: index > 0 ? '1px solid #e2e8f0' : 'none',
+                    paddingTop: index > 0 ? '1.5rem' : '0',
                   }}>
-                    {announcement.title}
-                  </h3>
-                  <p style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#64748b', 
-                    marginBottom: '0.5rem',
-                  }}>
-                    {new Date(announcement.dateTime).toLocaleDateString('en-US', {
-                      month: 'long',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
-                  </p>
-                  <p style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#334155',
-                    lineHeight: 1.5,
-                  }}>
-                    {announcement.description}
-                  </p>
-                </div>
-              ))}
+                    <h3 style={{ 
+                      fontWeight: 700, 
+                      color: '#0f172a',
+                      fontSize: '1.1rem',
+                      marginBottom: '0.5rem',
+                    }}>
+                      {announcement.title}
+                    </h3>
+                    <p style={{ 
+                      fontSize: '0.875rem', 
+                      color: '#64748b', 
+                      marginBottom: '0.5rem',
+                    }}>
+                      {new Date(announcement.dateTime).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </p>
+                    <div style={{ 
+                      fontSize: '0.875rem', 
+                      color: '#334155',
+                      lineHeight: 1.5,
+                    }}>
+                      <div
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: isExpanded ? 'unset' : 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
+                        }}
+                      >
+                        {announcement.description}
+                      </div>
+                      {shouldShowReadMore && (
+                        <button
+                          onClick={() => toggleReadMore(announcement.id)}
+                          style={{
+                            color: '#1173d4',
+                            fontWeight: 500,
+                            fontSize: '0.875rem',
+                            textDecoration: 'none',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                            marginTop: '0.5rem',
+                            alignSelf: 'flex-start',
+                          }}
+                          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                        >
+                          {isExpanded ? 'Read Less ↑' : 'Read More →'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
               {(!dashboardData?.announcements || dashboardData.announcements.length === 0) && (
                 <div style={{ 
                   display: 'flex', 

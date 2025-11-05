@@ -7,6 +7,7 @@ import Login from './component/Login';
 import ProtectedRoute from './component/ProtectedRoute';
 import Layout from './component/Layout';
 import RoomPage from './component/RoomPage';
+import Announcements from './component/Announcements';
 import './App.css';
 
 function App() {
@@ -37,6 +38,13 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+          <Route path="/student/:studentId/announcements" element={
+          <ProtectedRoute>
+            <Layout>
+              <Announcements />
+            </Layout>
+          </ProtectedRoute>
+        } />
         </Routes>
       </Router>
     </AuthProvider>
