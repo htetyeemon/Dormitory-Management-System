@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [dashboardData, setDashboardData] = useState(null);
+  const [checkInOutHistory, setCheckInOutHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { studentId } = useParams();
@@ -13,6 +14,7 @@ const StudentDashboard = () => {
 
   useEffect(() => {
     fetchDashboardData();
+    fetchCheckInOutHistory();
   }, [studentId]);
 
   const fetchDashboardData = async () => {
@@ -23,8 +25,49 @@ const StudentDashboard = () => {
     } catch (err) {
       setError('Failed to fetch dashboard data');
       console.error('Error fetching dashboard:', err);
+    }
+  };
+
+  const fetchCheckInOutHistory = async () => {
+    try {
+      const response = await studentAPI.getCheckInOutHistory(user.id);
+      setCheckInOutHistory(response.data || []);
+    } catch (err) {
+      console.error('Error fetching check-in/out history:', err);
+      setCheckInOutHistory([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Determine check-in status based on latest activity
+  const getCheckInStatus = () => {
+    if (!checkInOutHistory || checkInOutHistory.length === 0) {
+      return { status: 'Unknown', lastActivity: null };
+    }
+
+    // Sort activities by date (newest first)
+    const sortedActivities = [...checkInOutHistory].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+
+    const latestActivity = sortedActivities[0];
+    
+    if (latestActivity.status === 'APPROVED') {
+      return {
+        status: latestActivity.type === 'CHECKIN' ? 'Active' : 'Inactive',
+        lastActivity: latestActivity
+      };
+    } else if (latestActivity.status === 'PENDING') {
+      return {
+        status: 'Pending Approval',
+        lastActivity: latestActivity
+      };
+    } else {
+      return {
+        status: 'Unknown',
+        lastActivity: latestActivity
+      };
     }
   };
 
@@ -39,7 +82,7 @@ const StudentDashboard = () => {
   };
 
   const needsReadMore = (description) => {
-    return description.length > 200;
+    return description && description.length > 200;
   };
 
   const cardStyle = {
@@ -49,6 +92,32 @@ const StudentDashboard = () => {
     backgroundColor: '#fff',
     borderRadius: '0.75rem',
     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  };
+
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Active':
+        return '#22c55e'; // green
+      case 'Inactive':
+        return '#ef4444'; // red
+      case 'Pending Approval':
+        return '#f97316'; // orange
+      default:
+        return '#64748b'; // gray
+    }
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'Active':
+        return '✅';
+      case 'Inactive':
+        return '❌';
+      case 'Pending Approval':
+        return '⏳';
+      default:
+        return '❓';
+    }
   };
 
   if (loading) {
@@ -73,6 +142,8 @@ const StudentDashboard = () => {
       </div>
     );
   }
+
+  const checkInStatus = getCheckInStatus();
 
   return (
     <div style={{ padding: '2rem' }}>
@@ -118,14 +189,31 @@ const StudentDashboard = () => {
           </div>
           
           <div style={cardStyle}>
-            <span style={{ color: '#22c55e', fontSize: '2rem', marginBottom: '0.5rem' }}>✅</span>
+            <span style={{ color: getStatusColor(checkInStatus.status), fontSize: '2rem', marginBottom: '0.5rem' }}>
+              {getStatusIcon(checkInStatus.status)}
+            </span>
             <div>
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
                 Check-in Status
               </p>
-              <p style={{ color: '#0f172a', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                Active
+              <p style={{ 
+                color: getStatusColor(checkInStatus.status), 
+                fontSize: '1.5rem', 
+                fontWeight: 700, 
+                margin: 0 
+              }}>
+                {checkInStatus.status}
               </p>
+              {checkInStatus.lastActivity && (
+                <p style={{ 
+                  color: '#64748b', 
+                  fontSize: '0.75rem', 
+                  margin: '0.25rem 0 0 0',
+                  fontStyle: 'italic'
+                }}>
+                  Last: {new Date(checkInStatus.lastActivity.date).toLocaleDateString()}
+                </p>
+              )}
             </div>
           </div>
           

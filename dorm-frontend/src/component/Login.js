@@ -20,7 +20,7 @@ const Login = () => {
     const result = await login(id, password, userType);
     
     if (result.success) {
-      navigate(userType === 'manager' ? '/manager': '/student/'+id+'/dashboard');
+      navigate(userType === 'manager' ? '/manager/'+id+'/dashboard': '/student/'+id+'/dashboard');
     } else {
       setError(result.message);
     }

@@ -1,12 +1,19 @@
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useState, useRef, useEffect } from 'react';
 
 const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
-  const { studentId } = useParams();
+  const navigate = useNavigate();
+  const { studentId, managerId } = useParams();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
-  const id = studentId || user?.id; // fallback if no param in URL
+  // Determine ID based on user type and URL params
+  const id = user?.userType === 'manager' 
+    ? (managerId || user?.id) 
+    : (studentId || user?.id);
 
   const isActiveLink = (path) => location.pathname === path || location.pathname.startsWith(path);
 
@@ -15,21 +22,36 @@ const Layout = ({ children }) => {
     textDecoration: 'none',
     fontWeight: '500',
     transition: 'all 0.2s ease-in-out',
+    padding: '0.5rem 0.75rem',
+    borderRadius: '0.375rem',
   });
 
-  return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f6f7f8', fontFamily: 'Inter, sans-serif' }}>
-      <header style={{
-        backgroundColor: '#1e293b',
-        color: 'white',
-        padding: '1rem 2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>DormMS</div>
-
-        <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+  // Generate navigation links based on user type
+  const getNavigationLinks = () => {
+    if (user?.userType === 'manager') {
+      return (
+        <>
+          <Link to={`/manager/${id}/dashboard`} style={navLinkStyle(isActiveLink(`/manager/${id}/dashboard`))}>
+            Dashboard
+          </Link>
+          <Link to={`/manager/${id}/rooms`} style={navLinkStyle(isActiveLink(`/manager/${id}/rooms`))}>
+            Rooms
+          </Link>
+          <Link to={`/manager/${id}/complaints`} style={navLinkStyle(isActiveLink(`/manager/${id}/complaints`))}>
+            Complaints
+          </Link>
+          <Link to={`/manager/${id}/announcements`} style={navLinkStyle(isActiveLink(`/manager/${id}/announcements`))}>
+            Announcements
+          </Link>
+          <Link to={`/manager/${id}/checkinout`} style={navLinkStyle(isActiveLink(`/manager/${id}/checkinout`))}>
+            Check In/Out
+          </Link>
+        </>
+      );
+    } else {
+      // Student navigation
+      return (
+        <>
           <Link to={`/student/${id}/dashboard`} style={navLinkStyle(isActiveLink(`/student/${id}/dashboard`))}>
             Dashboard
           </Link>
@@ -45,32 +67,165 @@ const Layout = ({ children }) => {
           <Link to={`/student/${id}/checkin`} style={navLinkStyle(isActiveLink(`/student/${id}/checkin`))}>
             Check-in/Out
           </Link>
+        </>
+      );
+    }
+  };
 
-          {/* Profile */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            marginLeft: '1rem',
-            paddingLeft: '1rem',
-            borderLeft: '1px solid #475569',
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              backgroundColor: '#3b82f6',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: '600',
-            }}>
-              {user.name?.charAt(0)?.toUpperCase() || 'U'}
+  const handleProfileClick = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+    setShowDropdown(false);
+  };
+
+  const handleClickOutside = (event) => {
+    if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      setShowDropdown(false);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const getUserRoleText = () => {
+    return user?.userType === 'manager' ? 'Manager' : 'Student';
+  };
+
+  const getUserEmail = () => {
+    return user?.email || (user?.userType === 'manager' ? 'manager@dormitory.edu' : 'student@university.edu');
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#f6f7f8', fontFamily: 'Inter, sans-serif' }}>
+      <header style={{
+        backgroundColor: '#1e293b',
+        color: 'white',
+        padding: '1rem 2rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'relative',
+      }}>
+        <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>DormMS</div>
+
+        <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+          {getNavigationLinks()}
+
+          {/* Profile with Dropdown */}
+          <div style={{ position: 'relative' }} ref={dropdownRef}>
+            <div 
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                marginLeft: '1rem',
+                paddingLeft: '1rem',
+                borderLeft: '1px solid #475569',
+                cursor: 'pointer',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '0.375rem',
+                transition: 'background-color 0.2s ease-in-out',
+              }}
+              onClick={handleProfileClick}
+              onMouseEnter={(e) => e.target.style.backgroundColor = 'rgba(255, 255, 255, 0.1)'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+            >
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                backgroundColor: user?.userType === 'manager' ? '#8B5CF6' : '#3b82f6',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: '600',
+                color: 'white',
+                fontSize: '0.875rem',
+              }}>
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.875rem', fontWeight: '500' }}>{user?.name || 'User'}</span>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{getUserRoleText()}</span>
+              </div>
+              <span style={{ 
+                fontSize: '0.75rem', 
+                transition: 'transform 0.2s ease-in-out',
+                transform: showDropdown ? 'rotate(180deg)' : 'rotate(0deg)'
+              }}>
+                ▼
+              </span>
             </div>
-            <div>
-              <span>{user.name || 'User'}</span>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Student</span>
-            </div>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <div style={{
+                position: 'absolute',
+                top: '100%',
+                right: 0,
+                marginTop: '0.5rem',
+                backgroundColor: 'white',
+                border: '1px solid #e2e8f0',
+                borderRadius: '0.5rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                minWidth: '160px',
+                zIndex: 50,
+              }}>
+                <div style={{
+                  padding: '0.5rem',
+                  borderBottom: '1px solid #f1f5f9',
+                }}>
+                  <div style={{ 
+                    fontSize: '0.875rem', 
+                    fontWeight: '500', 
+                    color: '#1e293b',
+                    padding: '0.5rem 0.75rem',
+                  }}>
+                    {user?.name || 'User'}
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    color: '#64748b',
+                    padding: '0 0.75rem 0.5rem',
+                  }}>
+                    {getUserEmail()}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={handleLogout}
+                  style={{
+                    width: '100%',
+                    textAlign: 'left',
+                    padding: '0.75rem 1rem',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: '#ef4444',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.2s ease-in-out',
+                    borderBottomLeftRadius: '0.5rem',
+                    borderBottomRightRadius: '0.5rem',
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#fef2f2'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span>🚪</span>
+                    <span>Logout</span>
+                  </div>
+                </button>
+              </div>
+            )}
           </div>
         </nav>
       </header>

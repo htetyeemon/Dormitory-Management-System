@@ -34,7 +34,7 @@ import com.project.dormitory.service.StudentService;
 
 @RestController
 @RequestMapping("/api/manager")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:3000")
 public class ManagerController {
 
     @Autowired

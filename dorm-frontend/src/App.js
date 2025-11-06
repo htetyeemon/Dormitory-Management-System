@@ -8,6 +8,8 @@ import ProtectedRoute from './component/ProtectedRoute';
 import Layout from './component/Layout';
 import RoomPage from './component/RoomPage';
 import Announcements from './component/Announcements';
+import ServicePage from './component/ServicePage';
+import CheckInOutPage from './component/CheckInOutPage';
 import './App.css';
 
 function App() {
@@ -45,6 +47,41 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
+        <Route path="/student/:studentId/services" element={
+          <ProtectedRoute>
+            <Layout>
+              <ServicePage />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/student/:studentId/checkin" element={
+          <ProtectedRoute>
+            <Layout>
+              <CheckInOutPage />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/manager/:managerId/dashboard" element={
+          <ProtectedRoute>
+            <Layout>
+              <ManagerDashboard />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        {/* <Route path="/manager/:managerId/rooms" element={
+          <ProtectedRoute>
+            <Layout>
+              <ManagerRooms />
+            </Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/manager/:managerId/complaints" element={
+          <ProtectedRoute>
+            <Layout>
+              <ManagerComplaints />
+            </Layout>
+          </ProtectedRoute>
+        } /> */}
         </Routes>
       </Router>
     </AuthProvider>

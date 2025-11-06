@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
             id:data.userId,
             name:data.name,
             email: data.email,
-            userType: data.userType
+            userType: data.userType || data.role || data.type
           }
         
         setUser(userData);

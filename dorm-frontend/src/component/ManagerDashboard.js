@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
+import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 const ManagerDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { managerId } = useParams();
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [managerId]);
 
   const fetchDashboardData = async () => {
     try {
@@ -33,6 +37,57 @@ const ManagerDashboard = () => {
     backgroundColor: '#fff',
     borderRadius: '0.75rem',
     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  };
+
+  const buttonStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0.5rem',
+    width: '100%',
+    cursor: 'pointer',
+    overflow: 'hidden',
+    borderRadius: '0.5rem',
+    height: '3.5rem',
+    padding: '0 1.25rem',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    lineHeight: 'normal',
+    border: 'none',
+    transition: 'all 0.2s ease-in-out',
+  };
+
+  const primaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#4F46E5',
+    color: 'white',
+  };
+
+  const secondaryButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: 'white',
+    color: '#374151',
+    border: '1px solid #E5E7EB',
+  };
+
+  const handleAssignRoom = () => {
+    // Navigate to room assignment page
+    navigate(`/manager/${user.id}/rooms`);
+  };
+
+  const handleViewComplaints = () => {
+    // Navigate to complaints page
+    navigate(`/manager/${user.id}/complaints`);
+  };
+
+  const handleCreateAnnouncement = () => {
+    // Navigate to create announcement page
+    navigate(`/manager/${user.id}/announcements/create`);
+  };
+
+  const handleCheckRequests = () => {
+    // Navigate to check requests page
+    navigate(`/manager/${user.id}/checkinout`);
   };
 
   if (loading) {
@@ -158,8 +213,15 @@ const ManagerDashboard = () => {
           </div>
         </div>
 
-        {/* Recent Announcements */}
-        <div style={{ padding: '1rem', paddingTop: '2rem' }}>
+        {/* Main Content Grid */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: '2fr 1fr',
+          gap: '1.5rem',
+          padding: '1rem',
+          paddingTop: '2rem',
+        }}>
+          {/* Left Column - Recent Announcements */}
           <div style={cardStyle}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h3 style={{ color: '#0f172a', fontSize: '1.375rem', fontWeight: 700 }}>
@@ -190,6 +252,49 @@ const ManagerDashboard = () => {
                 </p>
               )}
             </div>
+          </div>
+
+          {/* Right Column - Action Buttons */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <button
+              style={primaryButtonStyle}
+              onClick={handleAssignRoom}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#4338CA'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#4F46E5'}
+            >
+              <span style={{ fontSize: '1.25rem' }}>➕</span>
+              <span>Assign Room</span>
+            </button>
+            
+            <button
+              style={secondaryButtonStyle}
+              onClick={handleViewComplaints}
+              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
+              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
+            >
+              <span style={{ fontSize: '1.25rem' }}>👁️</span>
+              <span>View Complaints</span>
+            </button>
+            
+            <button
+              style={secondaryButtonStyle}
+              onClick={handleCreateAnnouncement}
+              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
+              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
+            >
+              <span style={{ fontSize: '1.25rem' }}>📢</span>
+              <span>Create Announcement</span>
+            </button>
+            
+            <button
+              style={secondaryButtonStyle}
+              onClick={handleCheckRequests}
+              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
+              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
+            >
+              <span style={{ fontSize: '1.25rem' }}>📋</span>
+              <span>Check Requests</span>
+            </button>
           </div>
         </div>
       </div>
