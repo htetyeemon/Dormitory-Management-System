@@ -10,6 +10,8 @@ import RoomPage from './component/RoomPage';
 import Announcements from './component/Announcements';
 import ServicePage from './component/ServicePage';
 import CheckInOutPage from './component/CheckInOutPage';
+import ManagerRooms from './component/ManagerRooms';
+import ManagerAnnouncements from './component/ManagerAnnouncements';
 import './App.css';
 
 function App() {
@@ -68,20 +70,20 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
-        {/* <Route path="/manager/:managerId/rooms" element={
+        <Route path="/manager/:managerId/rooms" element={
           <ProtectedRoute>
             <Layout>
               <ManagerRooms />
             </Layout>
           </ProtectedRoute>
         } />
-        <Route path="/manager/:managerId/complaints" element={
+        <Route path="/manager/:managerId/announcements" element={
           <ProtectedRoute>
             <Layout>
-              <ManagerComplaints />
+              <ManagerAnnouncements />
             </Layout>
           </ProtectedRoute>
-        } /> */}
+        } />
         </Routes>
       </Router>
     </AuthProvider>

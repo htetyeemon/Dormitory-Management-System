@@ -24,6 +24,7 @@ import com.project.dormitory.model.ComplaintRepair;
 import com.project.dormitory.model.ManagerDashboardResponse;
 import com.project.dormitory.model.Room;
 import com.project.dormitory.model.RoomAssignmentRequest;
+import com.project.dormitory.model.Student;
 import com.project.dormitory.service.AnnouncementService;
 import com.project.dormitory.service.CheckInOutService;
 import com.project.dormitory.service.ComplaintRepairService;
@@ -94,6 +95,17 @@ public class ManagerController {
             return ResponseEntity.badRequest().body("Error assigning room: " + e.getMessage());
         }
     }
+
+    @GetMapping("/{managerId}/students/available")
+    public ResponseEntity<?> getAvailableStudents(@PathVariable Long managerId) {
+        try {
+            List<Student> availableStudents = studentService.getStudentsWithoutRoom();
+            return ResponseEntity.ok(availableStudents);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error fetching available students: " + e.getMessage());
+        }
+    }
+
 
     @PutMapping("/{managerId}/rooms/reassign")
     public ResponseEntity<?> reassignRoom(@PathVariable Long managerId,

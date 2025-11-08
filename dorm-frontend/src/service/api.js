@@ -57,6 +57,8 @@ export const managerAPI = {
   getAllRooms: (managerId) => api.get(`/manager/${managerId}/rooms`),
   assignRoom: (managerId, assignmentData) => 
     api.post(`/manager/${managerId}/rooms/assign`, assignmentData),
+  getAvailableStudents: (managerId) => 
+    api.get(`/manager/${managerId}/students/available`),
   reassignRoom: (managerId, reassignmentData) => 
     api.put(`/manager/${managerId}/rooms/reassign`, reassignmentData),
   removeStudentFromRoom: (managerId, studentId) => 
