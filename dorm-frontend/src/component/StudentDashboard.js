@@ -4,446 +4,445 @@ import { studentAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 
 const StudentDashboard = () => {
-  const { user } = useAuth();
-  const [dashboardData, setDashboardData] = useState(null);
-  const [checkInOutHistory, setCheckInOutHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { studentId } = useParams();
-  const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
+    const { user } = useAuth();
+    const [dashboardData, setDashboardData] = useState(null);
+    const [checkInOutHistory, setCheckInOutHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const { studentId } = useParams();
+    const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
 
-  useEffect(() => {
-    fetchDashboardData();
-    fetchCheckInOutHistory();
-  }, [studentId]);
+    useEffect(() => {
+        fetchDashboardData();
+        fetchCheckInOutHistory();
+    }, [studentId]);
 
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true);
-      const response = await studentAPI.getDashboard(user.id);
-      setDashboardData(response.data);
-    } catch (err) {
-      setError('Failed to fetch dashboard data');
-      console.error('Error fetching dashboard:', err);
+    const fetchDashboardData = async () => {
+        try {
+            setLoading(true);
+            const response = await studentAPI.getDashboard(user.id);
+            setDashboardData(response.data);
+        } catch (err) {
+            setError('Failed to fetch dashboard data');
+            console.error('Error fetching dashboard:', err);
+        }
+    };
+
+    const fetchCheckInOutHistory = async () => {
+        try {
+            const response = await studentAPI.getCheckInOutHistory(user.id);
+            setCheckInOutHistory(response.data || []);
+        } catch (err) {
+            console.error('Error fetching check-in/out history:', err);
+            setCheckInOutHistory([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Determine check-in status based on latest activity
+    const getCheckInStatus = () => {
+        if (!checkInOutHistory || checkInOutHistory.length === 0) {
+            return { status: 'Unknown', lastActivity: null };
+        }
+
+        // Sort activities by date (newest first)
+        const sortedActivities = [...checkInOutHistory].sort((a, b) =>
+            new Date(b.date) - new Date(a.date)
+        );
+
+        const latestActivity = sortedActivities[0];
+
+        if (latestActivity.status === 'APPROVED') {
+            return {
+                status: latestActivity.type === 'CHECKIN' ? 'Active' : 'Inactive',
+                lastActivity: latestActivity
+            };
+        } else if (latestActivity.status === 'PENDING') {
+            return {
+                status: 'Pending Approval',
+                lastActivity: latestActivity
+            };
+        } else {
+            return {
+                status: 'Unknown',
+                lastActivity: latestActivity
+            };
+        }
+    };
+
+    const toggleReadMore = (announcementId) => {
+        const newExpanded = new Set(expandedAnnouncements);
+        if (newExpanded.has(announcementId)) {
+            newExpanded.delete(announcementId);
+        } else {
+            newExpanded.add(announcementId);
+        }
+        setExpandedAnnouncements(newExpanded);
+    };
+
+    const needsReadMore = (description) => {
+        return description && description.length > 200;
+    };
+
+    const cardStyle = {
+        backgroundColor: '#ffffff',
+        borderRadius: '0.75rem',
+        border: '1px solid #f3ece8ff',
+    };
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Active':
+                return '#69301cff';
+            case 'Inactive':
+                return '#69301cff';
+            case 'Pending Approval':
+                return '#69301cff';
+            default:
+                return '#69301cff';
+        }
+    };
+
+    const getStatusIcon = (status) => {
+        switch (status) {
+            case 'Active':
+                return '✓';
+            case 'Inactive':
+                return '✗';
+            case 'Pending Approval':
+                return '⏳';
+            default:
+                return '?';
+        }
+    };
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
+                <div style={{
+                    animation: 'spin 1s linear infinite',
+                    borderRadius: '9999px',
+                    height: '3rem',
+                    width: '3rem',
+                    border: '2px solid #8d6e63',
+                    borderTopColor: 'transparent',
+                }}></div>
+            </div>
+        );
     }
-  };
 
-  const fetchCheckInOutHistory = async () => {
-    try {
-      const response = await studentAPI.getCheckInOutHistory(user.id);
-      setCheckInOutHistory(response.data || []);
-    } catch (err) {
-      console.error('Error fetching check-in/out history:', err);
-      setCheckInOutHistory([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Determine check-in status based on latest activity
-  const getCheckInStatus = () => {
-    if (!checkInOutHistory || checkInOutHistory.length === 0) {
-      return { status: 'Unknown', lastActivity: null };
+    if (error) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
+                <div style={{ color: '#d84315' }}>{error}</div>
+            </div>
+        );
     }
 
-    // Sort activities by date (newest first)
-    const sortedActivities = [...checkInOutHistory].sort((a, b) => 
-      new Date(b.date) - new Date(a.date)
-    );
+    const checkInStatus = getCheckInStatus();
 
-    const latestActivity = sortedActivities[0];
-    
-    if (latestActivity.status === 'APPROVED') {
-      return {
-        status: latestActivity.type === 'CHECKIN' ? 'Active' : 'Inactive',
-        lastActivity: latestActivity
-      };
-    } else if (latestActivity.status === 'PENDING') {
-      return {
-        status: 'Pending Approval',
-        lastActivity: latestActivity
-      };
-    } else {
-      return {
-        status: 'Unknown',
-        lastActivity: latestActivity
-      };
-    }
-  };
-
-  const toggleReadMore = (announcementId) => {
-    const newExpanded = new Set(expandedAnnouncements);
-    if (newExpanded.has(announcementId)) {
-      newExpanded.delete(announcementId);
-    } else {
-      newExpanded.add(announcementId);
-    }
-    setExpandedAnnouncements(newExpanded);
-  };
-
-  const needsReadMore = (description) => {
-    return description && description.length > 200;
-  };
-
-  const cardStyle = {
-    display: 'flex',
-    flexDirection: 'column',
-    padding: '1.5rem',
-    backgroundColor: '#fff',
-    borderRadius: '0.75rem',
-    boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Active':
-        return '#22c55e'; // green
-      case 'Inactive':
-        return '#ef4444'; // red
-      case 'Pending Approval':
-        return '#f97316'; // orange
-      default:
-        return '#64748b'; // gray
-    }
-  };
-
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'Active':
-        return '✅';
-      case 'Inactive':
-        return '❌';
-      case 'Pending Approval':
-        return '⏳';
-      default:
-        return '❓';
-    }
-  };
-
-  if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
-        <div style={{
-          animation: 'spin 1s linear infinite',
-          borderRadius: '9999px',
-          height: '3rem',
-          width: '3rem',
-          border: '2px solid #1173d4',
-          borderTopColor: 'transparent',
-        }}></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
-        <div style={{ color: '#ef4444' }}>{error}</div>
-      </div>
-    );
-  }
-
-  const checkInStatus = getCheckInStatus();
-
-  return (
-    <div style={{ padding: '2rem' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Welcome Section */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{
-            color: '#0f172a',
-            fontSize: '2.25rem',
-            fontWeight: 900,
-            lineHeight: 1.25,
-            letterSpacing: '-0.033em',
-            marginBottom: '0.5rem',
-          }}>
-            Welcome back, {user.name}!
-          </h1>
-          <p style={{
-            color: '#64748b',
-            fontSize: '1rem',
-            fontWeight: 400,
-          }}>
-            Here's what's happening in your dorm today.
-          </p>
-        </div>
-
-        {/* Stats Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: '1.5rem',
-          marginBottom: '2rem',
-        }}>
-          <div style={cardStyle}>
-            <span style={{ color: '#1173d4', fontSize: '2rem', marginBottom: '0.5rem' }}>🚪</span>
-            <div>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
-                Room Number
-              </p>
-              <p style={{ color: '#0f172a', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                {dashboardData?.room?.roomNum || 'Not Assigned'}
-              </p>
-            </div>
-          </div>
-          
-          <div style={cardStyle}>
-            <span style={{ color: getStatusColor(checkInStatus.status), fontSize: '2rem', marginBottom: '0.5rem' }}>
-              {getStatusIcon(checkInStatus.status)}
-            </span>
-            <div>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
-                Check-in Status
-              </p>
-              <p style={{ 
-                color: getStatusColor(checkInStatus.status), 
-                fontSize: '1.5rem', 
-                fontWeight: 700, 
-                margin: 0 
-              }}>
-                {checkInStatus.status}
-              </p>
-              {checkInStatus.lastActivity && (
-                <p style={{ 
-                  color: '#64748b', 
-                  fontSize: '0.75rem', 
-                  margin: '0.25rem 0 0 0',
-                  fontStyle: 'italic'
-                }}>
-                  Last: {new Date(checkInStatus.lastActivity.date).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-          </div>
-          
-          <div style={cardStyle}>
-            <span style={{ color: '#f97316', fontSize: '2rem', marginBottom: '0.5rem' }}>🔧</span>
-            <div>
-              <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
-                Maintenance Requests
-              </p>
-              <p style={{ color: '#0f172a', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                {dashboardData?.recentRequests?.length || 0}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content Grid */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '2fr 1fr',
-          gap: '2rem',
-          alignItems: 'stretch',
-        }}>
-          {/* Announcements - Left Column */}
-          <div style={{
-            ...cardStyle,
-            display: 'flex',
-            flexDirection: 'column',
-          }}>
-            <h2 style={{
-              color: '#0f172a',
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              marginBottom: '1.5rem',
-            }}>
-              Recent Announcements
-            </h2>
-            <div style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              gap: '1.5rem',
-              flex: 1,
-            }}>
-              {dashboardData?.announcements?.map((announcement, index) => {
-                const isExpanded = expandedAnnouncements.has(announcement.id);
-                const shouldShowReadMore = needsReadMore(announcement.description);
-
-                return (
-                  <div key={announcement.id} style={{
-                    borderTop: index > 0 ? '1px solid #e2e8f0' : 'none',
-                    paddingTop: index > 0 ? '1.5rem' : '0',
-                  }}>
-                    <h3 style={{ 
-                      fontWeight: 700, 
-                      color: '#0f172a',
-                      fontSize: '1.1rem',
-                      marginBottom: '0.5rem',
+        <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
+            <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+                {/* Welcome Section */}
+                <div style={{ marginBottom: '2rem' }}>
+                    <h1 style={{
+                        color: '#000000',
+                        fontSize: '2.25rem',
+                        fontWeight: 900,
+                        lineHeight: 1.25,
+                        letterSpacing: '-0.033em',
+                        marginBottom: '0.5rem',
                     }}>
-                      {announcement.title}
-                    </h3>
-                    <p style={{ 
-                      fontSize: '0.875rem', 
-                      color: '#64748b', 
-                      marginBottom: '0.5rem',
+                        Welcome back, {user.name}!
+                    </h1>
+                    <p style={{
+                        color: '#191919ff',
+                        fontSize: '1rem',
+                        fontWeight: 400,
                     }}>
-                      {new Date(announcement.dateTime).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
+                        Here's what's happening in your dorm today.
                     </p>
-                    <div style={{ 
-                      fontSize: '0.875rem', 
-                      color: '#334155',
-                      lineHeight: 1.5,
-                    }}>
-                      <div
-                        style={{
-                          display: '-webkit-box',
-                          WebkitLineClamp: isExpanded ? 'unset' : 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden',
-                          overflowWrap: 'break-word',
-                          wordBreak: 'break-word',
-                        }}
-                      >
-                        {announcement.description}
-                      </div>
-                      {shouldShowReadMore && (
-                        <button
-                          onClick={() => toggleReadMore(announcement.id)}
-                          style={{
-                            color: '#1173d4',
-                            fontWeight: 500,
-                            fontSize: '0.875rem',
-                            textDecoration: 'none',
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 0,
-                            marginTop: '0.5rem',
-                            alignSelf: 'flex-start',
-                          }}
-                          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                        >
-                          {isExpanded ? 'Read Less ↑' : 'Read More →'}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              {(!dashboardData?.announcements || dashboardData.announcements.length === 0) && (
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'center', 
-                  flex: 1,
-                  color: '#64748b',
+                </div>
+
+                {/* Stats Cards */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gap: '1.5rem',
+                    marginBottom: '2rem',
                 }}>
-                  No announcements available
-                </div>
-              )}
-            </div>
-          </div>
+                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ color: '#8d6e63', fontSize: '2rem' }}>🏠</span>
+                        <div>
+                            <p style={{ color: '#191919ff', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
+                                Room Number
+                            </p>
+                            <p style={{ color: '#69301cff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
+                                {dashboardData?.room?.roomNum || 'Not Assigned'}
+                            </p>
+                        </div>
+                    </div>
 
-          {/* Right Column - Contact Info and Service Hours */}
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            gap: '1.5rem',
-            height: '100%',
-          }}>
-            {/* Contact Information */}
-            <div style={{
-              ...cardStyle,
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-              <h3 style={{
-                color: '#0f172a',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem',
-              }}>
-                Contact Information
-              </h3>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '1.25rem',
-                flex: 1,
-                justifyContent: 'space-around',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>📞</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Phone</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>+1 (234) 567-890</p>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>📧</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Email</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>manager@mfudorm.com</p>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>📍</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Address</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>123 University Drive, MFU City</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ color: getStatusColor(checkInStatus.status), fontSize: '2rem' }}>
+                            {getStatusIcon(checkInStatus.status)}
+                        </span>
+                        <div>
+                            <p style={{ color: '#191919ff', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
+                                Check-in Status
+                            </p>
+                            <p style={{
+                                color: getStatusColor(checkInStatus.status),
+                                fontSize: '1.5rem',
+                                fontWeight: 700,
+                                margin: 0
+                            }}>
+                                {checkInStatus.status}
+                            </p>
+                            {checkInStatus.lastActivity && (
+                                <p style={{
+                                    color: '#191919ff',
+                                    fontSize: '0.75rem',
+                                    margin: '0.25rem 0 0 0',
+                                    fontStyle: 'italic'
+                                }}>
+                                    Last: {new Date(checkInStatus.lastActivity.date).toLocaleDateString()}
+                                </p>
+                            )}
+                        </div>
+                    </div>
 
-            {/* Service Hours */}
-            <div style={{
-              ...cardStyle,
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-              <h3 style={{
-                color: '#0f172a',
-                fontSize: '1.5rem',
-                fontWeight: 700,
-                marginBottom: '1.5rem',
-              }}>
-                Service Hours
-              </h3>
-              <div style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                gap: '1.25rem',
-                flex: 1,
-                justifyContent: 'space-around',
-              }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>🚨</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Emergency Services</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>24/7</p>
-                  </div>
+                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <span style={{ color: '#a1887f', fontSize: '2rem' }}>🔧</span>
+                        <div>
+                            <p style={{ color: '#191919ff', fontSize: '0.875rem', fontWeight: 400, margin: 0 }}>
+                                Maintenance Requests
+                            </p>
+                            <p style={{ color: '#69301cff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
+                                {dashboardData?.recentRequests?.length || 0}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>🔧</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Maintenance & Repairs</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>3:00AM-11:00PM</p>
-                  </div>
+
+                {/* Main Content Grid */}
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '2fr 1fr',
+                    gap: '2rem',
+                    alignItems: 'stretch',
+                }}>
+                    {/* Announcements - Left Column */}
+                    <div style={{
+                        ...cardStyle,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        padding: '1.5rem',
+                    }}>
+                        <h2 style={{
+                            color: '#000000',
+                            fontSize: '1.5rem',
+                            fontWeight: 700,
+                            marginBottom: '1.5rem',
+                        }}>
+                            Recent Announcements
+                        </h2>
+                        <div style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '1.5rem',
+                            flex: 1,
+                        }}>
+                            {dashboardData?.announcements?.map((announcement, index) => {
+                                const isExpanded = expandedAnnouncements.has(announcement.id);
+                                const shouldShowReadMore = needsReadMore(announcement.description);
+                                return (
+                                    <div key={announcement.id} style={{
+                                        borderTop: index > 0 ? '1px solid #e2d6cf' : 'none',
+                                        paddingTop: index > 0 ? '1.5rem' : '0',
+                                    }}>
+                                        <h3 style={{
+                                            fontWeight: 700,
+                                            color: '#000000',
+                                            fontSize: '1.1rem',
+                                            marginBottom: '0.5rem',
+                                        }}>
+                                            {announcement.title}
+                                        </h3>
+                                        <p style={{
+                                            fontSize: '0.875rem',
+                                            color: '#928d8dff',
+                                            marginBottom: '0.5rem',
+                                        }}>
+                                            {new Date(announcement.dateTime).toLocaleDateString('en-US', {
+                                                month: 'long',
+                                                day: 'numeric',
+                                                year: 'numeric'
+                                            })}
+                                        </p>
+                                        <div style={{
+                                            fontSize: '0.875rem',
+                                            color: '#191919ff',
+                                            lineHeight: 1.5,
+                                        }}>
+                                            <div
+                                                style={{
+                                                    display: '-webkit-box',
+                                                    WebkitLineClamp: isExpanded ? 'unset' : 2,
+                                                    WebkitBoxOrient: 'vertical',
+                                                    overflow: 'hidden',
+                                                    overflowWrap: 'break-word',
+                                                    wordBreak: 'break-word',
+                                                }}
+                                            >
+                                                {announcement.description}
+                                            </div>
+                                            {shouldShowReadMore && (
+                                                <button
+                                                    onClick={() => toggleReadMore(announcement.id)}
+                                                    style={{
+                                                        color: '#806e6eff',
+                                                        fontWeight: 500,
+                                                        fontSize: '0.875rem',
+                                                        textDecoration: 'none',
+                                                        background: 'none',
+                                                        border: 'none',
+                                                        cursor: 'pointer',
+                                                        padding: 0,
+                                                        marginTop: '0.5rem',
+                                                        alignSelf: 'flex-start',
+                                                    }}
+                                                    onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                                                    onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                                                >
+                                                    {isExpanded ? 'Read Less ↑' : 'Read More ↓'}
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                            {(!dashboardData?.announcements || dashboardData.announcements.length === 0) && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flex: 1,
+                                    color: '#191919ff',
+                                }}>
+                                    No announcements available
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Right Column - Contact Info and Service Hours */}
+                    <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem',
+                        height: '100%',
+                    }}>
+                        {/* Contact Information */}
+                        <div style={{
+                            ...cardStyle,
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '1.5rem',
+                        }}>
+                            <h3 style={{
+                                color: '#000000',
+                                fontSize: '1.5rem',
+                                fontWeight: 700,
+                                marginBottom: '1.5rem',
+                            }}>
+                                Contact Information
+                            </h3>
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.25rem',
+                                flex: 1,
+                                justifyContent: 'space-around',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>📞</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold" }}>Phone</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>+1 (234) 567-890</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>📧</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Email</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>manager@mfudorm.com</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>📍</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Address</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>123 University Drive, MFU City</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Service Hours */}
+                        <div style={{
+                            ...cardStyle,
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: '1.5rem',
+                        }}>
+                            <h3 style={{
+                                color: '#000000',
+                                fontSize: '1.5rem',
+                                fontWeight: 700,
+                                marginBottom: '1.5rem',
+                            }}>
+                                Service Hours
+                            </h3>
+                            <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '1.25rem',
+                                flex: 1,
+                                justifyContent: 'space-around',
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>🚨</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Emergency Services</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>24/7</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>🔧</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Maintenance & Repairs</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>3:00AM-11:00PM</p>
+                                    </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                                    <span style={{ color: '#8d6e63', fontSize: '1.1rem', marginTop: '0.125rem' }}>🏢</span>
+                                    <div>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Dormitory Office</p>
+                                        <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>9:00AM-5:00PM</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#64748b', fontSize: '1.1rem', marginTop: '0.125rem' }}>🏢</span>
-                  <div>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 0.25rem 0' }}>Dormitory Office</p>
-                    <p style={{ fontWeight: 500, color: '#0f172a', margin: 0 }}>9:00AM-5:00PM</p>
-                  </div>
-                </div>
-              </div>
             </div>
-          </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default StudentDashboard;
