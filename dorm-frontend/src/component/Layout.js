@@ -125,9 +125,12 @@ const Layout = ({ children }) => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                position: 'relative',
+                position: 'sticky',
+                top: 0,
+                zIndex: 1000,
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#e2d6cf' }}>DormMS</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f3efecff' }}>DormMS</div>
 
                 <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {getNavigationLinks()}
