@@ -213,7 +213,6 @@ const StudentDashboard = () => {
                                     color: '#191919ff',
                                     fontSize: '0.75rem',
                                     margin: '0.25rem 0 0 0',
-                                    fontStyle: 'italic'
                                 }}>
                                     Last: {new Date(checkInStatus.lastActivity.date).toLocaleDateString()}
                                 </p>

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSearch, faSort, faBullhorn, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';
 
 const Announcements = () => {
   const { user } = useAuth();
@@ -157,6 +159,12 @@ const Announcements = () => {
     return pages;
   };
 
+  const cardStyle = {
+    backgroundColor: '#ffffff',
+    borderRadius: '0.75rem',
+    border: '1px solid #e8c8b5ff'
+  };
+
   if (loading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
@@ -165,7 +173,7 @@ const Announcements = () => {
           borderRadius: '9999px',
           height: '3rem',
           width: '3rem',
-          border: '2px solid #1173d4',
+          border: '2px solid #8d6e63',
           borderTopColor: 'transparent',
         }}></div>
       </div>
@@ -174,40 +182,31 @@ const Announcements = () => {
 
   return (
     <div style={{
-      padding: '0 1rem',
-      display: 'flex',
-      justifyContent: 'center',
-      paddingTop: '1.25rem',
-      paddingBottom: '1.25rem',
-      minHeight: '100vh',
-      backgroundColor: '#f6f7f8'
+      padding: '2rem',
+      backgroundColor: '#faf7f5',
+      minHeight: '100vh'
     }}>
       <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        maxWidth: '1024px',
-        flex: 1,
+        maxWidth: '1200px',
+        margin: '0 auto'
       }}>
         {/* Header Section */}
         <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          padding: '1rem',
+          marginBottom: '2rem'
         }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             <h1 style={{
-              color: '#0f172a',
+              color: '#000000',
               fontSize: '2.25rem',
               fontWeight: 900,
               lineHeight: 1.25,
               letterSpacing: '-0.033em',
+              marginBottom: '0.5rem',
             }}>
               Announcements
             </h1>
             <p style={{
-              color: '#64748b',
+              color: '#191919ff',
               fontSize: '1rem',
               fontWeight: 400,
               lineHeight: 'normal',
@@ -225,7 +224,6 @@ const Announcements = () => {
           justifyContent: 'space-between',
           gap: '1rem',
           marginBottom: '2rem',
-          padding: '1rem',
         }}>
           {/* Search Input */}
           <div style={{
@@ -238,9 +236,11 @@ const Announcements = () => {
               left: '12px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: '#64748b',
-              fontSize: '20px'
-            }}>🔍</span>
+              color: '#7d2923',
+              fontSize: '16px'
+            }}>
+              <FontAwesomeIcon icon={faSearch} />
+            </span>
             <input
               type="text"
               placeholder="Search announcements..."
@@ -252,7 +252,7 @@ const Announcements = () => {
                 resize: 'none',
                 overflow: 'hidden',
                 borderRadius: '0.5rem',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #e8c8b5ff',
                 backgroundColor: 'white',
                 height: '3rem',
                 paddingLeft: '2.5rem',
@@ -263,8 +263,8 @@ const Announcements = () => {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => e.target.style.borderColor = '#1173d4'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              onFocus={(e) => e.target.style.borderColor = '#7d2923'}
+              onBlur={(e) => e.target.style.borderColor = '#e8c8b5ff'}
             />
           </div>
 
@@ -282,7 +282,7 @@ const Announcements = () => {
                 resize: 'none',
                 overflow: 'hidden',
                 borderRadius: '0.5rem',
-                border: '1px solid #e2e8f0',
+                border: '1px solid #e8c8b5ff',
                 backgroundColor: 'white',
                 height: '3rem',
                 paddingLeft: '1rem',
@@ -294,8 +294,8 @@ const Announcements = () => {
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={(e) => e.target.style.borderColor = '#1173d4'}
-              onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+              onFocus={(e) => e.target.style.borderColor = '#7d2923'}
+              onBlur={(e) => e.target.style.borderColor = '#e8c8b5ff'}
             >
               <option value="desc">Newest first</option>
               <option value="asc">Oldest first</option>
@@ -305,10 +305,12 @@ const Announcements = () => {
               right: '12px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: '#64748b',
-              fontSize: '20px',
+              color: '#7d2923',
+              fontSize: '14px',
               pointerEvents: 'none'
-            }}>▼</span>
+            }}>
+              <FontAwesomeIcon icon={faSort} />
+            </span>
           </div>
         </div>
 
@@ -317,7 +319,7 @@ const Announcements = () => {
           display: 'flex',
           flexDirection: 'column',
           gap: '1.5rem',
-          padding: '1rem',
+          marginBottom: '2rem',
         }}>
           {currentPageAnnouncements.length > 0 ? (
             currentPageAnnouncements.map((announcement) => {
@@ -328,12 +330,10 @@ const Announcements = () => {
                 <div
                   key={announcement.id}
                   style={{
+                    ...cardStyle,
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1rem',
-                    borderRadius: '0.75rem',
-                    border: '1px solid #e2e8f0',
-                    backgroundColor: 'white',
                     padding: '1.5rem',
                     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
                   }}
@@ -345,26 +345,36 @@ const Announcements = () => {
                     alignItems: 'flex-start',
                     gap: '1rem',
                   }}>
-                    <h3 style={{
-                      color: '#0f172a',
-                      fontSize: '1.25rem',
-                      fontWeight: 700,
-                      margin: 0,
-                    }}>
-                      {announcement.title}
-                    </h3>
-                    <p style={{
-                      color: '#64748b',
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      whiteSpace: 'nowrap',
-                      margin: 0,
-                    }}>
-                      {formatDate(announcement.dateTime)}
-                    </p>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <span style={{ color: '#7d2923', fontSize: '1.25rem' }}>
+                        <FontAwesomeIcon icon={faBullhorn} />
+                      </span>
+                      <h3 style={{
+                        color: '#000000',
+                        fontSize: '1.25rem',
+                        fontWeight: 700,
+                        margin: 0,
+                      }}>
+                        {announcement.title}
+                      </h3>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ color: '#7d2923', fontSize: '0.875rem' }}>
+                        <FontAwesomeIcon icon={faCalendarAlt} />
+                      </span>
+                      <p style={{
+                        color: '#928d8dff',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        whiteSpace: 'nowrap',
+                        margin: 0,
+                      }}>
+                        {formatDate(announcement.dateTime)}
+                      </p>
+                    </div>
                   </div>
                   <div style={{
-                    color: '#64748b',
+                    color: '#191919ff',
                     fontSize: '1rem',
                     lineHeight: 1.5,
                     margin: 0,
@@ -385,7 +395,7 @@ const Announcements = () => {
                       <button
                         onClick={() => toggleReadMore(announcement.id)}
                         style={{
-                          color: '#1173d4',
+                          color: '#806e6eff',
                           fontWeight: 500,
                           fontSize: '1rem',
                           textDecoration: 'none',
@@ -399,7 +409,7 @@ const Announcements = () => {
                         onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                         onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                       >
-                        {isExpanded ? 'Read Less ↑' : 'Read More →'}
+                        {isExpanded ? 'Read Less ↑' : 'Read More ↓'}
                       </button>
                     )}
                   </div>
@@ -408,11 +418,12 @@ const Announcements = () => {
             })
           ) : (
             <div style={{
+              ...cardStyle,
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
               padding: '3rem',
-              color: '#64748b',
+              color: '#191919ff',
               fontSize: '1rem',
             }}>
               {searchTerm ? 'No announcements found matching your search.' : 'No announcements available.'}
@@ -425,8 +436,7 @@ const Announcements = () => {
           <div style={{
             display: 'flex',
             justifyContent: 'center',
-            paddingTop: '2.5rem',
-            padding: '1rem',
+            paddingTop: '1.5rem',
           }}>
             <nav style={{
               display: 'flex',
@@ -447,19 +457,19 @@ const Announcements = () => {
                   height: '2.25rem',
                   borderRadius: '0.5rem',
                   transition: 'background-color 0.2s',
-                  border: 'none',
-                  backgroundColor: currentPage === 1 ? 'transparent' : 'transparent',
+                  border: '1px solid #e8c8b5ff',
+                  backgroundColor: currentPage === 1 ? '#faf7f5' : 'white',
                   cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                   opacity: currentPage === 1 ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
                   if (currentPage !== 1) {
-                    e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                    e.target.style.backgroundColor = '#faf7f5';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (currentPage !== 1) {
-                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.backgroundColor = 'white';
                   }
                 }}
               >
@@ -479,20 +489,20 @@ const Announcements = () => {
                     width: '2.25rem',
                     height: '2.25rem',
                     borderRadius: '0.5rem',
-                    border: 'none',
-                    backgroundColor: currentPage === page ? '#1173d4' : 'transparent',
-                    color: currentPage === page ? 'white' : 'inherit',
+                    border: '1px solid #e8c8b5ff',
+                    backgroundColor: currentPage === page ? '#7d2923' : 'white',
+                    color: currentPage === page ? 'white' : '#191919ff',
                     cursor: page === '...' ? 'default' : 'pointer',
                     transition: 'background-color 0.2s',
                   }}
                   onMouseEnter={(e) => {
                     if (page !== '...' && currentPage !== page) {
-                      e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                      e.target.style.backgroundColor = '#faf7f5';
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (page !== '...' && currentPage !== page) {
-                      e.target.style.backgroundColor = 'transparent';
+                      e.target.style.backgroundColor = 'white';
                     }
                   }}
                 >
@@ -512,19 +522,19 @@ const Announcements = () => {
                   height: '2.25rem',
                   borderRadius: '0.5rem',
                   transition: 'background-color 0.2s',
-                  border: 'none',
-                  backgroundColor: currentPage === totalPages ? 'transparent' : 'transparent',
+                  border: '1px solid #e8c8b5ff',
+                  backgroundColor: currentPage === totalPages ? '#faf7f5' : 'white',
                   cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                   opacity: currentPage === totalPages ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
                   if (currentPage !== totalPages) {
-                    e.target.style.backgroundColor = 'rgba(0, 0, 0, 0.05)';
+                    e.target.style.backgroundColor = '#faf7f5';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (currentPage !== totalPages) {
-                    e.target.style.backgroundColor = 'transparent';
+                    e.target.style.backgroundColor = 'white';
                   }
                 }}
               >

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCalendar, faCircleCheck, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutPage = () => {
   const { user } = useAuth();
@@ -119,6 +121,12 @@ const CheckInOutPage = () => {
     return new Date().toISOString().split('T')[0];
   };
 
+  const cardStyle = {
+    backgroundColor: '#ffffff',
+    borderRadius: '0.75rem',
+    border: '1px solid #e8c8b5ff'
+  };
+
   if (loading) {
     return (
       <div style={{ 
@@ -132,7 +140,7 @@ const CheckInOutPage = () => {
           borderRadius: '9999px',
           height: '3rem',
           width: '3rem',
-          border: '2px solid #1173d4',
+          border: '2px solid #8d6e63',
           borderTopColor: 'transparent',
         }}></div>
       </div>
@@ -142,27 +150,30 @@ const CheckInOutPage = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f6f7f8',
+      backgroundColor: '#faf7f5',
       fontFamily: 'Inter, sans-serif'
     }}>
       <main style={{
         maxWidth: '56rem',
         margin: '0 auto',
-        padding: '3rem 1rem'
+        padding: '2rem'
       }}>
         {/* Header Section */}
         <header style={{ marginBottom: '2rem' }}>
           <h1 style={{
-            fontSize: '1.875rem',
-            fontWeight: 'bold',
-            color: '#1f2937',
-            marginBottom: '0.5rem'
+            color: '#000000',
+            fontSize: '2.25rem',
+            fontWeight: 900,
+            lineHeight: 1.25,
+            letterSpacing: '-0.033em',
+            marginBottom: '0.5rem',
           }}>
             Check-in/Check-out Request
           </h1>
           <p style={{
-            color: '#6b7280',
-            fontSize: '1rem'
+            color: '#191919ff',
+            fontSize: '1rem',
+            fontWeight: 400,
           }}>
             Please fill out the form below to submit your request.
           </p>
@@ -170,9 +181,7 @@ const CheckInOutPage = () => {
 
         {/* Form Section */}
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '0.75rem',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+          ...cardStyle,
           padding: '2rem'
         }}>
           <form onSubmit={handleSubmit}>
@@ -180,10 +189,10 @@ const CheckInOutPage = () => {
               {/* Student Information Section */}
               <div style={{ marginBottom: '2rem' }}>
                 <h3 style={{
-                  fontSize: '1.125rem',
-                  fontWeight: '600',
-                  color: '#1f2937',
-                  marginBottom: '1rem'
+                  color: '#000000',
+                  fontSize: '1.5rem',
+                  fontWeight: 700,
+                  marginBottom: '1.5rem'
                 }}>
                   Student Information
                 </h3>
@@ -197,8 +206,8 @@ const CheckInOutPage = () => {
                     <label style={{
                       display: 'block',
                       fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#1f2937',
+                      fontWeight: 500,
+                      color: '#000000',
                       marginBottom: '0.5rem'
                     }}>
                       Student Name
@@ -224,8 +233,8 @@ const CheckInOutPage = () => {
                     <label style={{
                       display: 'block',
                       fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#1f2937',
+                      fontWeight: 500,
+                      color: '#000000',
                       marginBottom: '0.5rem'
                     }}>
                       Student ID
@@ -251,26 +260,38 @@ const CheckInOutPage = () => {
                     <label style={{
                       display: 'block',
                       fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#1f2937',
+                      fontWeight: 500,
+                      color: '#000000',
                       marginBottom: '0.5rem'
                     }}>
                       Room Number
                     </label>
-                    <input
-                      type="text"
-                      value={studentData.roomNumber}
-                      readOnly
-                      style={{
-                        width: '100%',
-                        borderRadius: '0.375rem',
-                        border: '1px solid #d1d5db',
-                        backgroundColor: '#f9fafb',
-                        padding: '0.625rem',
-                        fontSize: '0.875rem',
-                        color: '#6b7280'
-                      }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                      <span style={{
+                        position: 'absolute',
+                        left: '0.75rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#7d2923',
+                        fontSize: '1rem'
+                      }}>
+                        <FontAwesomeIcon icon={faDoorOpen} />
+                      </span>
+                      <input
+                        type="text"
+                        value={studentData.roomNumber}
+                        readOnly
+                        style={{
+                          width: '100%',
+                          borderRadius: '0.375rem',
+                          border: '1px solid #d1d5db',
+                          backgroundColor: '#f9fafb',
+                          padding: '0.625rem 0.625rem 0.625rem 2.5rem',
+                          fontSize: '0.875rem',
+                          color: '#6b7280'
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -280,8 +301,8 @@ const CheckInOutPage = () => {
                 <label style={{
                   display: 'block',
                   fontSize: '0.875rem',
-                  fontWeight: '500',
-                  color: '#1f2937',
+                  fontWeight: 500,
+                  color: '#000000',
                   marginBottom: '1rem'
                 }}>
                   Request Type
@@ -310,8 +331,8 @@ const CheckInOutPage = () => {
                         alignItems: 'center',
                         padding: '1rem',
                         borderRadius: '0.375rem',
-                        border: `2px solid ${formData.requestType === 'check-in' ? '#3b82f6' : '#d1d5db'}`,
-                        backgroundColor: formData.requestType === 'check-in' ? '#3b82f6' : 'white',
+                        border: `2px solid ${formData.requestType === 'check-in' ? '#7d2923' : '#d1d5db'}`,
+                        backgroundColor: formData.requestType === 'check-in' ? '#7d2923' : 'white',
                         color: formData.requestType === 'check-in' ? 'white' : '#6b7280',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease-in-out',
@@ -341,8 +362,8 @@ const CheckInOutPage = () => {
                         alignItems: 'center',
                         padding: '1rem',
                         borderRadius: '0.375rem',
-                        border: `2px solid ${formData.requestType === 'check-out' ? '#3b82f6' : '#d1d5db'}`,
-                        backgroundColor: formData.requestType === 'check-out' ? '#3b82f6' : 'white',
+                        border: `2px solid ${formData.requestType === 'check-out' ? '#7d2923' : '#d1d5db'}`,
+                        backgroundColor: formData.requestType === 'check-out' ? '#7d2923' : 'white',
                         color: formData.requestType === 'check-out' ? 'white' : '#6b7280',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease-in-out',
@@ -361,8 +382,8 @@ const CheckInOutPage = () => {
                   <label style={{
                     display: 'block',
                     fontSize: '0.875rem',
-                    fontWeight: '500',
-                    color: '#1f2937',
+                    fontWeight: 500,
+                    color: '#000000',
                     marginBottom: '0.5rem'
                   }}>
                     Requested Date
@@ -373,10 +394,10 @@ const CheckInOutPage = () => {
                       left: '0.75rem',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      color: '#9ca3af',
-                      fontSize: '1.25rem'
+                      color: '#7d2923',
+                      fontSize: '1rem'
                     }}>
-                      📅
+                      <FontAwesomeIcon icon={faCalendar} />
                     </span>
                     <input
                       type="date"
@@ -419,7 +440,7 @@ const CheckInOutPage = () => {
                     style={{
                       height: '1rem',
                       width: '1rem',
-                      color: '#3b82f6',
+                      color: '#7d2923',
                       borderColor: '#d1d5db',
                       borderRadius: '0.25rem'
                     }}
@@ -430,8 +451,8 @@ const CheckInOutPage = () => {
                     htmlFor="confirmation"
                     style={{
                       fontSize: '0.875rem',
-                      fontWeight: '500',
-                      color: '#1f2937',
+                      fontWeight: 500,
+                      color: '#000000',
                       cursor: 'pointer'
                     }}
                   >
@@ -456,9 +477,9 @@ const CheckInOutPage = () => {
                 style={{
                   padding: '0.5rem 1.5rem',
                   borderRadius: '0.375rem',
-                  border: '1px solid transparent',
+                  border: '1px solid #d1d5db',
                   backgroundColor: '#f3f4f6',
-                  color: '#3b82f6',
+                  color: '#7d2923',
                   fontSize: '0.875rem',
                   fontWeight: '500',
                   cursor: 'pointer',
@@ -476,7 +497,7 @@ const CheckInOutPage = () => {
                   padding: '0.5rem 1.5rem',
                   borderRadius: '0.375rem',
                   border: '1px solid transparent',
-                  backgroundColor: submitting ? '#9ca3af' : '#3b82f6',
+                  backgroundColor: submitting ? '#9ca3af' : '#7d2923',
                   color: 'white',
                   fontSize: '0.875rem',
                   fontWeight: '500',
@@ -484,10 +505,10 @@ const CheckInOutPage = () => {
                   transition: 'background-color 0.2s'
                 }}
                 onMouseEnter={(e) => {
-                  if (!submitting) e.target.style.backgroundColor = '#2563eb';
+                  if (!submitting) e.target.style.backgroundColor = '#69301cff';
                 }}
                 onMouseLeave={(e) => {
-                  if (!submitting) e.target.style.backgroundColor = '#3b82f6';
+                  if (!submitting) e.target.style.backgroundColor = '#7d2923';
                 }}
               >
                 {submitting ? 'Submitting...' : 'Submit Request'}
