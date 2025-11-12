@@ -12,6 +12,8 @@ import ServicePage from './component/ServicePage';
 import CheckInOutPage from './component/CheckInOutPage';
 import ManagerRooms from './component/ManagerRooms';
 import ManagerAnnouncements from './component/ManagerAnnouncements';
+import CheckInOutManagement from './component/CheckInOutManagement';
+import ComplaintsPage from './component/ComplaintsPage';
 import './App.css';
 
 function App() {
@@ -84,6 +86,21 @@ function App() {
             </Layout>
           </ProtectedRoute>
         } />
+        // Add this route to your App.js
+      <Route path="/manager/:managerId/checkinout" element={
+        <ProtectedRoute>
+          <Layout>
+            <CheckInOutManagement />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/manager/:managerId/complaints" element={
+        <ProtectedRoute>
+          <Layout>
+            <ComplaintsPage />
+          </Layout>
+        </ProtectedRoute>
+      } />
         </Routes>
       </Router>
     </AuthProvider>

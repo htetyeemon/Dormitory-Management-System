@@ -77,8 +77,8 @@ export const managerAPI = {
     api.get(`/manager/${managerId}/complaints`),
   getPendingComplaints: (managerId) => 
     api.get(`/manager/${managerId}/complaints/pending`),
-  updateComplaintStatus: (managerId, complaintId) => 
-    api.put(`/manager/${managerId}/complaints/${complaintId}/status`),
+  updateComplaintStatus: (managerId, complaintId,status) => 
+    api.put(`/manager/${managerId}/complaints/${complaintId}/${status}`),
   getAllAnnouncements: (managerId) => 
     api.get(`/manager/${managerId}/announcements`),
   searchAnnouncements: (managerId, keyword) => 

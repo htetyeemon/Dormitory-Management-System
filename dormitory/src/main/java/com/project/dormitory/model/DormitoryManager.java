@@ -14,12 +14,10 @@ public class DormitoryManager {
     private String phone;
     private String email;
 
-    @JsonIgnore
     private String password;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name="dorm_id")
-    @JsonIgnore
     private Dormitory dormitory;
 
     @OneToMany(mappedBy = "manager")

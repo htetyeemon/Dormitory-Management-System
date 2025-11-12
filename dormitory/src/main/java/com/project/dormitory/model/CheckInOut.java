@@ -17,7 +17,6 @@ public class CheckInOut {
 
     @ManyToOne
     @JoinColumn(name = "stu_id")
-    @JsonIgnore
     private Student student;
 
     @JsonSerialize(using = LocalDateSerializer.class)

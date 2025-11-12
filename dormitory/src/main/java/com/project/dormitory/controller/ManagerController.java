@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.project.dormitory.model.Announcement;
 import com.project.dormitory.model.CheckInOut;
+import com.project.dormitory.model.CheckInOutDto;
 import com.project.dormitory.model.ComplaintRepair;
+import com.project.dormitory.model.ComplaintRepairDto;
 import com.project.dormitory.model.ManagerDashboardResponse;
 import com.project.dormitory.model.Room;
 import com.project.dormitory.model.RoomAssignmentRequest;
@@ -153,7 +155,19 @@ public class ManagerController {
         try {
             Long dormId = managerService.getDormitoryIdByManagerId(managerId);
             List<CheckInOut> requests = checkInOutService.getCheckInOutRequests(dormId);
-            return ResponseEntity.ok(requests);
+            List<CheckInOutDto> dtoList = requests.stream()
+            .map(req -> new CheckInOutDto(
+                req.getId(),
+                req.getType(),
+                req.getStatus(),
+                req.getDate(),
+                req.getStudent() != null ? req.getStudent().getName() : "N/A",
+                req.getStudent() != null && req.getStudent().getRoom() != null
+                    ? req.getStudent().getRoom().getRoomNum()
+                    : "N/A"
+            ))
+            .toList();
+            return ResponseEntity.ok(dtoList);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching check-in/out requests: " + e.getMessage());
         }
@@ -197,7 +211,23 @@ public class ManagerController {
         try {
             Long dormId = managerService.getDormitoryIdByManagerId(managerId);
             List<ComplaintRepair> complaints = complaintRepairService.getComplaintsByDormitory(dormId);
-            return ResponseEntity.ok(complaints);
+            List<ComplaintRepairDto> dtoList = complaints.stream().map(c -> {
+            ComplaintRepairDto dto = new ComplaintRepairDto();
+            dto.setId(c.getId());
+            dto.setDescription(c.getDescription());
+            dto.setPriorityLvl(c.getPriorityLvl());
+            dto.setType(c.getServiceType());
+            dto.setStatus(c.getStatus());
+            if (c.getStudent() != null) {
+                dto.setStudentId(c.getStudent().getId());
+                dto.setStudentName(c.getStudent().getName());
+                if (c.getStudent().getRoom() != null) {
+                    dto.setRoomNumber(c.getStudent().getRoom().getRoomNum());
+                }
+            }
+            return dto;
+        }).toList();
+            return ResponseEntity.ok(dtoList);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error fetching complaints: " + e.getMessage());
         }
@@ -213,11 +243,11 @@ public class ManagerController {
         }
     }
 
-    @PutMapping("/{managerId}/complaints/{complaintId}/status")
+    @PutMapping("/{managerId}/complaints/{complaintId}/{status}")
     public ResponseEntity<?> updateComplaintStatus(@PathVariable Long managerId,
-                                                 @PathVariable Long complaintId) {
+                                                 @PathVariable Long complaintId,@PathVariable String status) {
         try {
-            complaintRepairService.updateComplaintStatus(complaintId, "APPROVED");
+            complaintRepairService.updateComplaintStatus(complaintId, status);
             return ResponseEntity.ok("Complaint status updated successfully");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error updating complaint status: " + e.getMessage());

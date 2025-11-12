@@ -17,7 +17,6 @@ public class Dormitory {
     private String email;
 
     @OneToMany(mappedBy = "dormitory")
-    @JsonIgnore
     private List<Room> rooms;
 
     // Getters and Setters
