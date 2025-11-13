@@ -198,7 +198,7 @@ const Announcements = () => {
             <h1 style={{
               color: '#000000',
               fontSize: '2.25rem',
-              fontWeight: 900,
+              fontWeight: 600,
               lineHeight: 1.25,
               letterSpacing: '-0.033em',
               marginBottom: '0.5rem',

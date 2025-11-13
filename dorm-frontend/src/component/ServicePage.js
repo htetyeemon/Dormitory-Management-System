@@ -284,7 +284,7 @@ const ServicePage = () => {
           <h1 style={{
             color: '#000000',
             fontSize: '2.25rem',
-            fontWeight: 900,
+            fontWeight: 600,
             lineHeight: 1.25,
             letterSpacing: '-0.033em',
             marginBottom: '0.5rem',
@@ -541,7 +541,7 @@ const ServicePage = () => {
                 gap: '1.25rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight:'10px'}}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight:'10px'}}>
                     <FontAwesomeIcon icon={faPhone} />
                   </span>
                   <div>
@@ -552,7 +552,7 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faEnvelope} />
                   </span>
                   <div>
@@ -563,7 +563,7 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faLocationDot} />
                   </span>
                   <div>
@@ -582,7 +582,7 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faDoorOpen} />
                   </span>
                   <div>
@@ -615,7 +615,7 @@ const ServicePage = () => {
                 gap: '1.25rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faTriangleExclamation} />
                   </span>
                   <div>
@@ -624,7 +624,7 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faScrewdriverWrench} />
                   </span>
                   <div>
@@ -633,7 +633,7 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                     <FontAwesomeIcon icon={faBuilding} />
                   </span>
                   <div>
@@ -672,7 +672,7 @@ const ServicePage = () => {
                 left: '0.75rem',
                 top: '50%',
                 transform: 'translateY(-50%)',
-                color: '#7d2923',
+                color: '#CD853F',
               }}>
                 <FontAwesomeIcon icon={faSearch} />
               </span>
@@ -800,7 +800,7 @@ const ServicePage = () => {
                             style={{
                               background: 'none',
                               border: 'none',
-                              color: '#7d2923',
+                              color: '#CD853F',
                               cursor: 'pointer',
                               fontSize: '1rem',
                             }}

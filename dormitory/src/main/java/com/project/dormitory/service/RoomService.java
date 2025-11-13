@@ -50,7 +50,7 @@ public class RoomService {
         Room room = roomRepository.findById(new com.project.dormitory.model.RoomId(roomNum, dormId))
             .orElseThrow(() -> new RuntimeException("Room not found"));
         
-        if (room.getOccupancy() >= 4) {
+        if (room.getOccupancy() >= 2) {
             throw new RuntimeException("Room is already full");
         }
         

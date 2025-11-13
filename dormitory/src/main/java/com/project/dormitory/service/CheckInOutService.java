@@ -50,6 +50,13 @@ public class CheckInOutService {
     public List<CheckInOut> getCheckInOutRequests(Long dormId) {
         return checkInOutRepository.findByDormitoryId(dormId);
     }
+
+    public List<CheckInOut> searchCheckInOutRequests(Long dormId, String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getCheckInOutRequests(dormId);
+        }
+        return checkInOutRepository.searchByDormitoryId(dormId, searchTerm.trim());
+    }
     
     public List<CheckInOut> getPendingRequests() {
         return checkInOutRepository.findByStatusOrderByDateDesc("PENDING");

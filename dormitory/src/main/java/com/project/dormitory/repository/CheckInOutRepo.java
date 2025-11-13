@@ -25,5 +25,13 @@ public interface CheckInOutRepo extends JpaRepository<CheckInOut,Long>{
     @Query("SELECT cio FROM CheckInOut cio JOIN cio.student s JOIN s.room r WHERE r.dormitory.id = :dormId ORDER BY cio.date DESC")
     List<CheckInOut> findByDormitoryId(@Param("dormId") Long dormId);
 
-
+    
+    @Query("SELECT cio FROM CheckInOut cio JOIN cio.student s JOIN s.room r WHERE r.dormitory.id = :dormId AND " +
+           "(LOWER(s.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR " +
+           "LOWER(r.roomNum) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) " +
+           "ORDER BY cio.date DESC")
+    List<CheckInOut> searchByDormitoryId(@Param("dormId") Long dormId, @Param("searchTerm") String searchTerm);
 }
+
+
+

@@ -163,7 +163,7 @@ const CheckInOutPage = () => {
           <h1 style={{
             color: '#000000',
             fontSize: '2.25rem',
-            fontWeight: 900,
+            fontWeight: 600,
             lineHeight: 1.25,
             letterSpacing: '-0.033em',
             marginBottom: '0.5rem',
@@ -272,7 +272,7 @@ const CheckInOutPage = () => {
                         left: '0.75rem',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        color: '#7d2923',
+                        color: '#CD853F',
                         fontSize: '1rem'
                       }}>
                         <FontAwesomeIcon icon={faDoorOpen} />
@@ -394,7 +394,7 @@ const CheckInOutPage = () => {
                       left: '0.75rem',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      color: '#7d2923',
+                      color: '#CD853F',
                       fontSize: '1rem'
                     }}>
                       <FontAwesomeIcon icon={faCalendar} />

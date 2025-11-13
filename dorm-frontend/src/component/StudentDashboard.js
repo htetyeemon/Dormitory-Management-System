@@ -3,12 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faDoorOpen,
-    faCircleCheck,faHourglassStart,faCircleXmark,faCircleQuestion,
+import {
+    faDoorOpen,
+    faCircleCheck, faHourglassStart, faCircleXmark, faCircleQuestion,
     faScrewdriverWrench,
-    faPhone,faEnvelope,faLocationDot,
-    faTriangleExclamation,faBuilding,
- } from '@fortawesome/free-solid-svg-icons';
+    faPhone, faEnvelope, faLocationDot,
+    faTriangleExclamation, faBuilding,
+} from '@fortawesome/free-solid-svg-icons';
 
 const StudentDashboard = () => {
     const { user } = useAuth();
@@ -22,6 +23,16 @@ const StudentDashboard = () => {
     useEffect(() => {
         fetchDashboardData();
         fetchCheckInOutHistory();
+    }, [studentId]);
+
+    // Add this useEffect to refresh data periodically for real-time updates
+    useEffect(() => {
+        const interval = setInterval(() => {
+            fetchDashboardData();
+            fetchCheckInOutHistory();
+        }, 30000); // Refresh every 30 seconds
+
+        return () => clearInterval(interval); // Cleanup on unmount
     }, [studentId]);
 
     const fetchDashboardData = async () => {
@@ -38,10 +49,11 @@ const StudentDashboard = () => {
     const fetchCheckInOutHistory = async () => {
         try {
             const response = await studentAPI.getCheckInOutHistory(user.id);
+            // Ensure we have an array even if response.data is null/undefined
             setCheckInOutHistory(response.data || []);
         } catch (err) {
             console.error('Error fetching check-in/out history:', err);
-            setCheckInOutHistory([]);
+            setCheckInOutHistory([]); // Set empty array on error
         } finally {
             setLoading(false);
         }
@@ -60,20 +72,30 @@ const StudentDashboard = () => {
 
         const latestActivity = sortedActivities[0];
 
+        // Enhanced status determination logic
         if (latestActivity.status === 'APPROVED') {
             return {
                 status: latestActivity.type === 'CHECKIN' ? 'Active' : 'Inactive',
-                lastActivity: latestActivity
+                lastActivity: latestActivity,
+                type: latestActivity.type
             };
         } else if (latestActivity.status === 'PENDING') {
             return {
                 status: 'Pending Approval',
-                lastActivity: latestActivity
+                lastActivity: latestActivity,
+                type: latestActivity.type
+            };
+        } else if (latestActivity.status === 'REJECTED') {
+            return {
+                status: 'Rejected',
+                lastActivity: latestActivity,
+                type: latestActivity.type
             };
         } else {
             return {
                 status: 'Unknown',
-                lastActivity: latestActivity
+                lastActivity: latestActivity,
+                type: latestActivity.type
             };
         }
     };
@@ -101,13 +123,15 @@ const StudentDashboard = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'Active':
-                return '#69301cff';
+                return '#CD853F';
             case 'Inactive':
-                return '#69301cff';
+                return '#CD853F';
             case 'Pending Approval':
-                return '#69301cff';
+                return '#CD853F';
+            case 'Rejected':
+                return '#CD853F';
             default:
-                return '#69301cff';
+                return '#CD853F';
         }
     };
 
@@ -119,6 +143,8 @@ const StudentDashboard = () => {
                 return <FontAwesomeIcon icon={faCircleXmark} />;
             case 'Pending Approval':
                 return <FontAwesomeIcon icon={faHourglassStart} />;
+            case 'Rejected':
+                return <FontAwesomeIcon icon={faCircleXmark} />;
             default:
                 return <FontAwesomeIcon icon={faCircleQuestion} />;
         }
@@ -157,7 +183,7 @@ const StudentDashboard = () => {
                     <h1 style={{
                         color: '#000000',
                         fontSize: '2.25rem',
-                        fontWeight: 900,
+                        fontWeight: 600,
                         lineHeight: 1.25,
                         letterSpacing: '-0.033em',
                         marginBottom: '0.5rem',
@@ -181,12 +207,12 @@ const StudentDashboard = () => {
                     marginBottom: '2rem',
                 }}>
                     <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span style={{ color: '#7d2923', fontSize: '2rem' }}><FontAwesomeIcon icon={faDoorOpen} /></span>
+                        <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faDoorOpen} /></span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                                 Room Number
                             </p>
-                            <p style={{ color: '#69301cff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
+                            <p style={{ color: '#000000', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
                                 {dashboardData?.room?.roomNum || 'Not Assigned'}
                             </p>
                         </div>
@@ -201,7 +227,7 @@ const StudentDashboard = () => {
                                 Check-in Status
                             </p>
                             <p style={{
-                                color: getStatusColor(checkInStatus.status),
+                                color: '#000000',
                                 fontSize: '1.5rem',
                                 fontWeight: 700,
                                 margin: 0
@@ -221,12 +247,12 @@ const StudentDashboard = () => {
                     </div>
 
                     <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <span style={{ color: '#7d2923', fontSize: '2rem' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
+                        <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                                 Service Requests
                             </p>
-                            <p style={{ color: '#69301cff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
+                            <p style={{ color: '#000000', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
                                 {dashboardData?.recentRequests?.length || 0}
                             </p>
                         </div>
@@ -375,23 +401,23 @@ const StudentDashboard = () => {
                                 justifyContent: 'space-around',
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight:'10px'}}><FontAwesomeIcon icon={faPhone} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faPhone} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold" }}>Phone</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Phone</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>+1 (234) 567-890</p>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px'}}><FontAwesomeIcon icon={faEnvelope} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faEnvelope} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Email</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Email</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>manager@mfudorm.com</p>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem' ,paddingRight:'10px'}}><FontAwesomeIcon icon={faLocationDot} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faLocationDot} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Address</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Address</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>123 University Drive, MFU City</p>
                                     </div>
                                 </div>
@@ -422,23 +448,23 @@ const StudentDashboard = () => {
                                 justifyContent: 'space-around',
                             }}>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}><FontAwesomeIcon icon={faTriangleExclamation} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faTriangleExclamation} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Emergency Services</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Emergency Services</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>24/7</p>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Maintenance & Repairs</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Maintenance & Repairs</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>3:00AM-11:00PM</p>
                                     </div>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}><FontAwesomeIcon icon={faBuilding} /></span>
+                                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight: '10px' }}><FontAwesomeIcon icon={faBuilding} /></span>
                                     <div>
-                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0',fontWeight:"bold"}}>Dormitory Office</p>
+                                        <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office</p>
                                         <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>9:00AM-5:00PM</p>
                                     </div>
                                 </div>

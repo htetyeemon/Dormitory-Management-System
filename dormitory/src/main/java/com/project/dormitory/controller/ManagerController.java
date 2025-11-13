@@ -173,6 +173,26 @@ public class ManagerController {
         }
     }
 
+    @GetMapping("/{managerId}/checkinout/search")
+    public ResponseEntity<?> searchCheckInOutRequests(
+        @PathVariable Long managerId,
+        @RequestParam(required = false) String searchTerm) {
+    try {
+        Long dormId = managerService.getDormitoryIdByManagerId(managerId);
+        List<CheckInOut> requests;
+        
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            requests = checkInOutService.searchCheckInOutRequests(dormId, searchTerm);
+        } else {
+            requests = checkInOutService.getCheckInOutRequests(dormId);
+        }
+        
+        return ResponseEntity.ok(requests);
+    } catch (Exception e) {
+        return ResponseEntity.badRequest().body("Error searching check-in/out requests: " + e.getMessage());
+    }
+}
+
     @GetMapping("/{managerId}/checkinout/pending")
     public ResponseEntity<?> getPendingCheckInOutRequests(@PathVariable Long managerId) {
         try {

@@ -54,17 +54,18 @@ const Login = () => {
         padding: '2rem'
       }}>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem'}}>
             <span style={{ 
               fontSize: '4.5rem',
               color: '#7d2923'
+              , paddingBottom:'0.2rem'
             }}>
               <FontAwesomeIcon icon={faBuildingUser} />
             </span>
           </div>
           <h2 style={{
-            marginTop: '1.5rem',
-            fontSize: '2.25rem',
+            marginTop: '0.2rem',
+            fontSize: '2rem',
             fontWeight: 700,
             color: '#000000',
             lineHeight: 1.25,

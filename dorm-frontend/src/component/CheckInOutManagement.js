@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutManagement = () => {
   const { user } = useAuth();
@@ -81,8 +83,8 @@ const CheckInOutManagement = () => {
     }
 
     const filtered = requests.filter(request => 
-      request.student?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.student?.room?.roomNum?.toLowerCase().includes(searchTerm.toLowerCase())
+      request.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      request.roomNum?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredRequests(filtered);
     setCurrentPage(1);
@@ -144,6 +146,55 @@ const CheckInOutManagement = () => {
     return type === 'Check-in' ? 'Check-in' : 'Check-out';
   };
 
+  // Pagination handlers
+  const handleNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      if (currentPage <= 3) {
+        for (let i = 1; i <= 4; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      } else if (currentPage >= totalPages - 2) {
+        pages.push(1);
+        pages.push('...');
+        for (let i = totalPages - 3; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        pages.push(1);
+        pages.push('...');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pages.push(i);
+        }
+        pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -163,9 +214,9 @@ const CheckInOutManagement = () => {
       {/* Search Bar */}
       <div className="search-section">
         <div className="search-container">
-          <div className="search-icon">
-            <span className="material-symbols-outlined">search</span>
-          </div>
+          <span className="search-icon">
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
+          </span>
           <input
             type="text"
             className="search-input"
@@ -174,6 +225,18 @@ const CheckInOutManagement = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
+        
+        {/* Add this search results info */}
+        {searchTerm && (
+          <div className="search-results-info">
+            Found {filteredRequests.length} result{filteredRequests.length !== 1 ? 's' : ''} for "{searchTerm}"
+            {filteredRequests.length === 0 && (
+              <span style={{marginLeft: '10px', color: '#666'}}>
+                Try searching by student name (e.g., "John") or room number (e.g., "101")
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -240,86 +303,165 @@ const CheckInOutManagement = () => {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Pagination - Updated to match ManagerRooms style */}
         {totalPages > 1 && (
-          <div className="pagination">
-            <button
-              onClick={() => paginate(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="pagination-btn pagination-prev"
-            >
-              Previous
-            </button>
-            
-            <div className="pagination-numbers">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            paddingTop: '1.5rem',
+            paddingBottom: '1.5rem',
+            borderTop: '1px solid #e5e7eb'
+          }}>
+            <nav style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              fontSize: '0.875rem',
+              fontWeight: 500,
+            }}>
+              {/* Previous Button */}
+              <button
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2.25rem',
+                  height: '2.25rem',
+                  borderRadius: '0.5rem',
+                  transition: 'background-color 0.2s',
+                  border: '1px solid #e8c8b5ff',
+                  backgroundColor: currentPage === 1 ? '#faf7f5' : 'white',
+                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                  opacity: currentPage === 1 ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== 1) {
+                    e.target.style.backgroundColor = '#faf7f5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== 1) {
+                    e.target.style.backgroundColor = 'white';
+                  }
+                }}
+              >
+                ←
+              </button>
+
+              {/* Page Numbers */}
+              {getPageNumbers().map((page, index) => (
                 <button
-                  key={page}
-                  onClick={() => paginate(page)}
-                  className={`pagination-btn pagination-number ${
-                    currentPage === page ? 'pagination-active' : ''
-                  }`}
+                  key={index}
+                  onClick={() => typeof page === 'number' && paginate(page)}
+                  disabled={page === '...'}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '2.25rem',
+                    height: '2.25rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #e8c8b5ff',
+                    backgroundColor: currentPage === page ? '#7d2923' : 'white',
+                    color: currentPage === page ? 'white' : '#191919ff',
+                    cursor: page === '...' ? 'default' : 'pointer',
+                    transition: 'background-color 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (page !== '...' && currentPage !== page) {
+                      e.target.style.backgroundColor = '#faf7f5';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (page !== '...' && currentPage !== page) {
+                      e.target.style.backgroundColor = 'white';
+                    }
+                  }}
                 >
                   {page}
                 </button>
               ))}
-            </div>
-            
-            <button
-              onClick={() => paginate(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="pagination-btn pagination-next"
-            >
-              Next
-            </button>
+
+              {/* Next Button */}
+              <button
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '2.25rem',
+                  height: '2.25rem',
+                  borderRadius: '0.5rem',
+                  transition: 'background-color 0.2s',
+                  border: '1px solid #e8c8b5ff',
+                  backgroundColor: currentPage === totalPages ? '#faf7f5' : 'white',
+                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                  opacity: currentPage === totalPages ? 0.5 : 1,
+                }}
+                onMouseEnter={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.target.style.backgroundColor = '#faf7f5';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (currentPage !== totalPages) {
+                    e.target.style.backgroundColor = 'white';
+                  }
+                }}
+              >
+                →
+              </button>
+            </nav>
           </div>
         )}
-
-        {/* Results count */}
-        <div className="results-count">
-          Showing {currentItems.length} of {filteredRequests.length} results
-        </div>
       </div>
 
       <style jsx>{`
         .checkinout-management {
           min-height: 100vh;
-          background-color: #f6f7f8;
+          background-color: #faf7f5;
           font-family: 'Inter', sans-serif;
-          padding: 24px;
+          padding: 2rem;
         }
 
         .page-header {
-          margin-bottom: 24px;
+          margin-bottom: 2rem;
         }
 
         .page-title {
-          font-size: 36px;
-          font-weight: 900;
-          color: #111827;
-          margin: 0 0 8px 0;
-          letter-spacing: -0.02em;
+          font-size: 2.25rem;
+          font-weight: 600;
+          color: #000000;
+          margin: 0 0 0.5rem 0;
+          letter-spacing: -0.033em;
+          line-height: 1.25;
         }
 
         .page-subtitle {
-          font-size: 14px;
-          color: #6b7280;
+          font-size: 1rem;
+          color: #191919ff;
           margin: 0;
+          padding-left:rem;
+          font-weight: 400;
         }
 
         .search-section {
-          margin-bottom: 24px;
+          margin-bottom: 2rem;
         }
 
         .search-container {
           display: flex;
           align-items: center;
           background: white;
-          border-radius: 8px;
-          border: 1px solid #d1d5db;
-          max-width: 400px;
-          height: 48px;
+          border-radius: 0.5rem;
+          border: 1px solid #e8c8b5ff;
+          height: 3rem;
           overflow: hidden;
+          width: 100%;
+          max-width: 400px;
         }
 
         .search-icon {
@@ -327,7 +469,8 @@ const CheckInOutManagement = () => {
           align-items: center;
           justify-content: center;
           padding: 0 12px;
-          color: #6b7280;
+          color: #CD853F;
+          font-size: 16px;
         }
 
         .search-input {
@@ -335,21 +478,26 @@ const CheckInOutManagement = () => {
           border: none;
           outline: none;
           padding: 12px 12px 12px 0;
-          font-size: 14px;
-          color: #111827;
+          font-size: 1rem;
+          color: #191919ff;
           background: transparent;
+          width: 100%;
+          font-weight: 400;
         }
 
         .search-input::placeholder {
           color: #9ca3af;
         }
 
+        .search-input:focus {
+          border-color: #7d2923;
+        }
+
         .table-section {
           background: white;
-          border-radius: 12px;
-          border: 1px solid #e5e7eb;
+          border-radius: 0.75rem;
+          border: 1px solid #e8c8b5ff;
           overflow: hidden;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
         .table-container {
@@ -362,19 +510,19 @@ const CheckInOutManagement = () => {
         }
 
         .table-header {
-          background-color: #f9fafb;
-          border-bottom: 1px solid #e5e7eb;
+          background-color: #faf7f5;
+          border-bottom: 1px solid #e2d6cf;
         }
 
         .table-head {
-          padding: 16px 24px;
+          padding: 1rem;
           text-align: left;
-          font-size: 12px;
+          font-size: 0.875rem;
           font-weight: 600;
-          color: #6b7280;
+          color: #000000;
           text-transform: uppercase;
           letter-spacing: 0.05em;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #e2d6cf;
         }
 
         .table-body {
@@ -382,12 +530,12 @@ const CheckInOutManagement = () => {
         }
 
         .table-row {
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #e2d6cf;
           transition: background-color 0.2s;
         }
 
         .table-row:hover {
-          background-color: #f9fafb;
+          background-color: #faf7f5;
         }
 
         .table-row:last-child {
@@ -395,24 +543,25 @@ const CheckInOutManagement = () => {
         }
 
         .table-cell {
-          padding: 16px 24px;
-          font-size: 14px;
-          color: #374151;
+          padding: 1rem;
+          font-size: 0.875rem;
+          color: #191919ff;
         }
 
         .student-name {
-          font-weight: 600;
-          color: #111827;
+          font-weight: 700;
+          color: #000000;
         }
 
         .room-number,
         .request-type,
         .date {
-          color: #6b7280;
+          color: #191919ff;
+          font-weight: 400;
         }
 
         .status {
-          font-size: 12px;
+          font-size: 0.75rem;
         }
 
         .status-badge {
@@ -421,7 +570,7 @@ const CheckInOutManagement = () => {
           padding: 4px 12px;
           border-radius: 9999px;
           font-weight: 500;
-          font-size: 11px;
+          font-size: 0.75rem;
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
@@ -443,15 +592,15 @@ const CheckInOutManagement = () => {
 
         .actions {
           display: flex;
-          gap: 8px;
+          gap: 0.5rem;
         }
 
         .btn-approve,
         .btn-reject {
-          padding: 8px 16px;
+          padding: 0.5rem 1rem;
           border: none;
-          border-radius: 6px;
-          font-size: 12px;
+          border-radius: 0.375rem;
+          font-size: 0.75rem;
           font-weight: 500;
           cursor: pointer;
           transition: all 0.2s;
@@ -459,92 +608,43 @@ const CheckInOutManagement = () => {
         }
 
         .btn-approve {
-          background-color: #10b981;
+          background-color: #228B22;
           color: white;
         }
 
         .btn-approve:hover:not(:disabled) {
-          background-color: #059669;
+          background-color: #1f7a1f;
         }
 
         .btn-reject {
-          background-color: #ef4444;
+          background-color: #DC2626;
           color: white;
         }
 
         .btn-reject:hover:not(:disabled) {
-          background-color: #dc2626;
+          background-color: #b91c1c;
         }
 
         .btn-approve:disabled,
         .btn-reject:disabled {
-          background-color: #d1d5db;
-          color: #9ca3af;
+          background-color: #e4e3e2ff;
+          color: #928d8dff;
           cursor: not-allowed;
         }
 
         .no-data {
           text-align: center;
-          color: #6b7280;
+          color: #191919ff;
           font-style: italic;
-        }
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          padding: 24px;
-          border-top: 1px solid #e5e7eb;
-        }
-
-        .pagination-btn {
-          padding: 8px 16px;
-          border: 1px solid #d1d5db;
-          background: white;
-          color: #374151;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 14px;
-          transition: all 0.2s;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-          background: #f3f4f6;
-          border-color: #9ca3af;
-        }
-
-        .pagination-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pagination-numbers {
-          display: flex;
-          gap: 4px;
-        }
-
-        .pagination-number {
-          min-width: 40px;
-        }
-
-        .pagination-active {
-          background-color: #3b82f6;
-          color: white;
-          border-color: #3b82f6;
-        }
-
-        .pagination-active:hover {
-          background-color: #2563eb;
-          border-color: #2563eb;
         }
 
         .results-count {
           text-align: center;
-          padding: 16px;
-          color: #6b7280;
-          font-size: 14px;
-          border-top: 1px solid #f3f4f6;
+          padding: 1rem;
+          color: #191919ff;
+          font-size: 0.875rem;
+          border-top: 1px solid #e2d6cf;
+          font-weight: 400;
         }
 
         .loading-container {
@@ -555,10 +655,10 @@ const CheckInOutManagement = () => {
         }
 
         .loading-spinner {
-          width: 40px;
-          height: 40px;
-          border: 4px solid #f3f4f6;
-          border-left: 4px solid #3b82f6;
+          width: 3rem;
+          height: 3rem;
+          border: 2px solid #8d6e63;
+          border-top: 2px solid transparent;
           border-radius: 50%;
           animation: spin 1s linear infinite;
         }
@@ -566,11 +666,6 @@ const CheckInOutManagement = () => {
         @keyframes spin {
           0% { transform: rotate(0deg); }
           100% { transform: rotate(360deg); }
-        }
-
-        .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-          font-size: 20px;
         }
       `}</style>
     </div>
