@@ -16,14 +16,14 @@
 }
 
 .header-content {
-  text-align: center;
+  text-align: left;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #1f2937;
   margin-bottom: 0.5rem;
+  font-size:2.25rem;
 }
 
 .page-subtitle {
@@ -113,6 +113,7 @@
   color: #374151;
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
+  font-weight: bold;
 }
 
 .complaints-table td {
@@ -142,9 +143,7 @@
   white-space: nowrap;
 }
 
-.student-id {
-  white-space: nowrap;
-}
+
 
 .room-number {
   white-space: nowrap;
@@ -217,7 +216,7 @@
 }
 
 .btn-approve {
-  background-color: #10b981;
+  background-color: #228B22;
   color: white;
 }
 

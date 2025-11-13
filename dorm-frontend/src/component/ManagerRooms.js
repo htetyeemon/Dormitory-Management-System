@@ -4,9 +4,13 @@ import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import "../css/ManagerRooms.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {faCircleXmark, faMagnifyingGlass
-    
- } from '@fortawesome/free-solid-svg-icons';
+import {
+  faCircleXmark, 
+  faMagnifyingGlass,
+  faDoorOpen,
+  faUserPlus,
+  faUserMinus
+} from '@fortawesome/free-solid-svg-icons';
 
 const ManagerRooms = () => {
   const { user } = useAuth();
@@ -71,7 +75,6 @@ const ManagerRooms = () => {
     }
   };
 
-
   const handleRemoveStudent = (room) => {
     setSelectedRoom(room);
     setStudentsToRemove([]);
@@ -124,10 +127,25 @@ const ManagerRooms = () => {
     student.name.toLowerCase().includes(studentSearch)
   );
 
+  // Card style consistent with Student Room Page
+  const cardStyle = {
+    backgroundColor: '#ffffff',
+    borderRadius: '0.75rem',
+    border: '1px solid #e8c8b5ff',
+    padding: '1.5rem',
+  };
+
   if (loading) {
     return (
-      <div className="loading-spinner">
-        <div className="spinner"></div>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '16rem' }}>
+        <div style={{
+          animation: 'spin 1s linear infinite',
+          borderRadius: '9999px',
+          height: '3rem',
+          width: '3rem',
+          border: '2px solid #8d6e63',
+          borderTopColor: 'transparent',
+        }}></div>
       </div>
     );
   }
@@ -141,56 +159,122 @@ const ManagerRooms = () => {
   }
 
   return (
-    <div className="manager-rooms-container">
-      <div className="manager-header">
-        {/* Header */}
-        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
-          <h1 className="header-title">
-            Dormitory Rooms
+    <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
+      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        {/* Header Section - Consistent with Student Room Page */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h1 style={{
+            color: '#000000',
+            fontSize: '2.25rem',
+            fontWeight: 900,
+            lineHeight: 1.25,
+            letterSpacing: '-0.033em',
+            marginBottom: '0.5rem',
+          }}>
+            Dormitory Rooms Management
           </h1>
+          <p style={{
+            color: '#191919ff',
+            fontSize: '1rem',
+            fontWeight: 400,
+          }}>
+            Manage room assignments and student allocations
+          </p>
         </div>
 
-        {/* Search Bar - Full width */}
-        <div className="search-container-full">
-          <div className="search-wrapper-full">
-            
+        {/* Search Bar - Styled consistently */}
+        <div style={{ ...cardStyle, marginBottom: '1.5rem' }}>
+          <div style={{ position: 'relative' }}>
             <input 
-              className="search-input-full"
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem 0.75rem 2.5rem',
+                border: '1px solid #e2d6cf',
+                borderRadius: '0.5rem',
+                fontSize: '0.875rem',
+                backgroundColor: '#faf7f5',
+                color: '#191919ff',
+              }}
               placeholder="Search for a room..."
               value={searchTerm}
               onChange={handleSearchChange}
             />
+            <span style={{
+              position: 'absolute',
+              left: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#CD853F',
+            }}>
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </span>
           </div>
         </div>
 
-        {/* Rooms Table */}
-        <div className="table-container">
-          <table className="rooms-table">
+        {/* Rooms Table - Styled consistently */}
+        <div style={cardStyle}>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
-              <tr className="table-header">
-                <th className="table-header-cell">
+              <tr style={{ borderBottom: '1px solid #e2d6cf' }}>
+                <th style={{
+                  padding: '1rem',
+                  textAlign: 'left',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#000000',
+                }}>
                   Room Number
                 </th>
-                <th className="table-header-cell">
+                <th style={{
+                  padding: '1rem',
+                  textAlign: 'left',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#000000',
+                }}>
                   Student ID
                 </th>
-                <th className="table-header-cell">
+                <th style={{
+                  padding: '1rem',
+                  textAlign: 'left',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#000000',
+                }}>
                   Capacity
                 </th>
-                <th className="table-header-cell">
+                <th style={{
+                  padding: '1rem',
+                  textAlign: 'left',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#000000',
+                }}>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="table-body">
+            <tbody>
               {filteredRooms.map((room) => {
                 const isOccupied = room.students && room.students.length > 0;
                 return (
-                  <tr key={room.roomNum} className="table-row">
-                    <td className="table-cell table-cell-primary">
-                      {room.roomNum}
+                  <tr key={room.roomNum} style={{ borderBottom: '1px solid #e2d6cf' }}>
+                    <td style={{
+                      padding: '1rem',
+                      fontSize: '0.875rem',
+                      color: '#69301cff',
+                      fontWeight: 700,
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <FontAwesomeIcon icon={faDoorOpen} style={{ color: '#CD853F' }} />
+                        {room.roomNum}
+                      </div>
                     </td>
-                    <td className="table-cell table-cell-secondary">
+                    <td style={{
+                      padding: '1rem',
+                      fontSize: '0.875rem',
+                      color: '#191919ff',
+                    }}>
                       {isOccupied 
                         ? room.students.map((student, index) => (
                             <React.Fragment key={student.id}>
@@ -200,23 +284,53 @@ const ManagerRooms = () => {
                           ))
                         : '-'}
                     </td>
-                    <td className="table-cell table-cell-secondary">
-                      {room.occupancy || 0} / {room.capacity || 4}
+                    <td style={{
+                      padding: '1rem',
+                      fontSize: '0.875rem',
+                      color: '#191919ff',
+                    }}>
+                      {room.occupancy || 0} / {room.capacity || 2}
                     </td>
-                    <td className="table-cell">
-                      <div className="action-buttons-left">
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <button 
-                          className={`add-student-btn ${room.occupancy >= 4 ? 'disabled' : ''}`}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: room.occupancy >= 2 ? '#e4e3e2ff' : '#228B22',
+                            color: room.occupancy >= 2 ? '#928d8dff' : '#ffffff',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            cursor: room.occupancy >= 4 ? 'not-allowed' : 'pointer',
+                          }}
                           onClick={() => handleAddStudent(room)}
-                          disabled={room.occupancy >= 4}
+                          disabled={room.occupancy >= 2}
                         >
+                          <FontAwesomeIcon icon={faUserPlus} />
                           Add Student
                         </button>
                         <button 
-                          className="remove-student-btn"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            padding: '0.5rem 1rem',
+                            backgroundColor: !room.students || room.students.length === 0 ? '#e4e3e2ff' : '#dc2626',
+                            color: room.occupancy <=0 ? '#928d8dff' : '#ffffff',
+                            border: 'none',
+                            borderRadius: '0.375rem',
+                            fontSize: '0.75rem',
+                            fontWeight: 500,
+                            cursor: !room.students || room.students.length === 0 ? 'not-allowed' : 'pointer',
+                          }}
                           onClick={() => handleRemoveStudent(room)}
                           disabled={!room.students || room.students.length === 0}
                         >
+                          <FontAwesomeIcon icon={faUserMinus} />
                           Remove Student
                         </button>
                       </div>
@@ -226,99 +340,203 @@ const ManagerRooms = () => {
               })}
             </tbody>
           </table>
-          
-          
         </div>
       </div>
 
-      {/* Assign Student Modal */}
+      {/* Assign Student Modal - Styled consistently */}
       {showAssignModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50,
+          padding: '1rem',
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '0.75rem',
+            border: '1px solid #e8c8b5ff',
+            width: '100%',
+            maxWidth: '28rem',
+            maxHeight: '90vh',
+            overflow: 'auto',
+          }}>
             {/* Modal Header */}
-            <div className="modal-header">
-              <div className="flex flex-col gap-1">
-                <h2 className="modal-title">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              padding: '1.5rem 1.5rem 1rem 1.5rem',
+              borderBottom: '1px solid #e2d6cf',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <h2 style={{
+                  color: '#000000',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  margin: 0,
+                }}>
                   Assign Student to Room {selectedRoom?.roomNum}
                 </h2>
-                <p className="modal-subtitle">
+                <p style={{
+                  color: '#191919ff',
+                  fontSize: '0.875rem',
+                  margin: 0,
+                }}>
                   Fill in the details below to assign a student to this room.
                 </p>
               </div>
               <button 
-                className="modal-close-btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#928d8dff',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                }}
                 onClick={() => setShowAssignModal(false)}
               >
-                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
+                <FontAwesomeIcon icon={faCircleXmark} style={{ fontSize: '1.5rem' }} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="modal-body">
-              {/* Room Number (Read-only) */}
-              <label className="form-label">
-                <p className="label-text">
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {/* Room Number */}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span style={{
+                  color: '#000000',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                }}>
                   Room Number
-                </p>
+                </span>
                 <input 
-                  className="form-input form-input-readonly"
+                  style={{
+                    padding: '0.75rem',
+                    border: '1px solid #e2d6cf',
+                    borderRadius: '0.375rem',
+                    backgroundColor: '#faf7f5',
+                    color: '#191919ff',
+                    fontSize: '0.875rem',
+                  }}
                   readOnly 
                   value={selectedRoom?.roomNum}
                 />
               </label>
 
-              {/* Student ID (Search) */}
-              <label className="form-label">
-                <p className="label-text">
+              {/* Student Search */}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <span style={{
+                  color: '#000000',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                }}>
                   Student ID
-                </p>
-                <div className="search-input-wrapper">
+                </span>
+                <div style={{ position: 'relative' }}>
                   <input 
-                    className="form-input form-input-search"
+                    style={{
+                      width: '100%',
+                      padding: '0.75rem 1rem 0.75rem 2.5rem',
+                      border: '1px solid #e2d6cf',
+                      borderRadius: '0.375rem',
+                      fontSize: '0.875rem',
+                      backgroundColor: '#ffffff',
+                      color: '#191919ff',
+                    }}
                     placeholder="Type to search by Student ID or Name"
                     value={studentSearch}
                     onChange={(e) => setStudentSearch(e.target.value)}
                   />
-                  <div className="search-input-icon">
-                    <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faMagnifyingGlass} /></span>
-                  </div>
+                  <span style={{
+                    position: 'absolute',
+                    left: '0.75rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#CD853F',
+                  }}>
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  </span>
                 </div>
-                <p className="helper-text">
+                <p style={{
+                  color: '#928d8dff',
+                  fontSize: '0.75rem',
+                  margin: 0,
+                }}>
                   Search by student's name or ID number to select.
                 </p>
               </label>
 
               {/* Student List */}
               {studentSearch && (
-                <div className="student-list">
+                <div style={{
+                  border: '1px solid #e2d6cf',
+                  borderRadius: '0.375rem',
+                  maxHeight: '12rem',
+                  overflow: 'auto',
+                }}>
                   {filteredStudents.map(student => (
                     <div 
                       key={student.id}
-                      className={`student-item ${selectedStudent?.id === student.id ? 'student-item-selected' : ''}`}
+                      style={{
+                        padding: '0.75rem 1rem',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid #e2d6cf',
+                        backgroundColor: selectedStudent?.id === student.id ? '#f5e8dfff' : 'transparent',
+                      }}
                       onClick={() => setSelectedStudent(student)}
                     >
-                      <div className="student-id">
+                      <div style={{
+                        color: '#69301cff',
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                      }}>
                         {student.id}
                       </div>
-                      <div className="student-name">
+                      <div style={{
+                        color: '#191919ff',
+                        fontSize: '0.875rem',
+                      }}>
                         {student.name}
                       </div>
                     </div>
                   ))}
                   {filteredStudents.length === 0 && (
-                    <div className="empty-state">No students found</div>
+                    <div style={{
+                      padding: '2rem 1rem',
+                      textAlign: 'center',
+                      color: '#928d8dff',
+                      fontSize: '0.875rem',
+                    }}>
+                      No students found
+                    </div>
                   )}
                 </div>
               )}
 
-              {/* Student Name (Auto-populated) */}
+              {/* Student Name */}
               {selectedStudent && (
-                <label className="form-label">
-                  <p className="label-text">
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <span style={{
+                    color: '#000000',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                  }}>
                     Student Name
-                  </p>
+                  </span>
                   <input 
-                    className="form-input form-input-readonly"
+                    style={{
+                      padding: '0.75rem',
+                      border: '1px solid #e2d6cf',
+                      borderRadius: '0.375rem',
+                      backgroundColor: '#faf7f5',
+                      color: '#191919ff',
+                      fontSize: '0.875rem',
+                    }}
                     readOnly 
                     value={selectedStudent.name}
                   />
@@ -327,88 +545,198 @@ const ManagerRooms = () => {
             </div>
 
             {/* Modal Footer */}
-            <div className="modal-footer">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem',
+              padding: '1rem 1.5rem 1.5rem 1.5rem',
+              borderTop: '1px solid #e2d6cf',
+            }}>
               <button 
-                className="footer-btn btn-secondary"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #e2d6cf',
+                  borderRadius: '0.375rem',
+                  backgroundColor: 'transparent',
+                  color: '#191919ff',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
                 onClick={() => setShowAssignModal(false)}
               >
-                <span className="truncate">Back</span>
+                Back
               </button>
               <button 
-                className={`footer-btn btn-primary ${!selectedStudent ? 'disabled' : ''}`}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  backgroundColor: !selectedStudent ? '#e2d6cf' : '#CD853F',
+                  color: '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: !selectedStudent ? 'not-allowed' : 'pointer',
+                }}
                 onClick={handleAssignStudent}
                 disabled={!selectedStudent}
               >
-                <span className="truncate">Assign Student</span>
+                Assign Student
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Remove Student Modal */}
+      {/* Remove Student Modal - Styled consistently */}
       {showRemoveModal && (
-        <div className="modal-overlay">
-          <div className="modal-container">
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50,
+          padding: '1rem',
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            borderRadius: '0.75rem',
+            border: '1px solid #e8c8b5ff',
+            width: '100%',
+            maxWidth: '28rem',
+            maxHeight: '90vh',
+            overflow: 'auto',
+          }}>
             {/* Modal Header */}
-            <div className="modal-header">
-              <div className="flex flex-col gap-1">
-                <h2 className="modal-title">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              padding: '1.5rem 1.5rem 1rem 1.5rem',
+              borderBottom: '1px solid #e2d6cf',
+            }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                <h2 style={{
+                  color: '#000000',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  margin: 0,
+                }}>
                   Remove Students from Room {selectedRoom?.roomNum}
                 </h2>
-                <p className="modal-subtitle">
+                <p style={{
+                  color: '#191919ff',
+                  fontSize: '0.875rem',
+                  margin: 0,
+                }}>
                   Select students to remove from this room.
                 </p>
               </div>
               <button 
-                className="modal-close-btn"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#928d8dff',
+                  cursor: 'pointer',
+                  padding: '0.25rem',
+                }}
                 onClick={() => setShowRemoveModal(false)}
               >
-                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
+                <FontAwesomeIcon icon={faCircleXmark} style={{ fontSize: '1.5rem' }} />
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="modal-body">
-              {/* Student List with Checkboxes */}
-              <div className="student-list">
+            <div style={{ padding: '1.5rem' }}>
+              <div style={{
+                border: '1px solid #e2d6cf',
+                borderRadius: '0.375rem',
+                maxHeight: '16rem',
+                overflow: 'auto',
+              }}>
                 {selectedRoom?.students && selectedRoom.students.length > 0 ? (
                   selectedRoom.students.map(student => (
-                    <div key={student.id} className="checkbox-item">
+                    <div key={student.id} style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.75rem',
+                      padding: '0.75rem 1rem',
+                      borderBottom: '1px solid #e2d6cf',
+                    }}>
                       <input
                         type="checkbox"
                         id={`student-${student.id}`}
                         checked={studentsToRemove.includes(student.id)}
                         onChange={() => toggleStudentToRemove(student.id)}
-                        className="checkbox-input"
+                        style={{
+                          width: '1rem',
+                          height: '1rem',
+                          color: '#CD853F',
+                        }}
                       />
-                      <label htmlFor={`student-${student.id}`} className="checkbox-label">
+                      <label htmlFor={`student-${student.id}`} style={{
+                        color: '#191919ff',
+                        fontSize: '0.875rem',
+                        cursor: 'pointer',
+                        flex: 1,
+                      }}>
                         {student.id} - {student.name}
                       </label>
                     </div>
                   ))
                 ) : (
-                  <p className="empty-state">
+                  <div style={{
+                    padding: '2rem 1rem',
+                    textAlign: 'center',
+                    color: '#928d8dff',
+                    fontSize: '0.875rem',
+                  }}>
                     No students in this room.
-                  </p>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Modal Footer */}
-            <div className="modal-footer">
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '0.75rem',
+              padding: '1rem 1.5rem 1.5rem 1.5rem',
+              borderTop: '1px solid #e2d6cf',
+            }}>
               <button 
-                className="footer-btn btn-secondary"
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: '1px solid #e2d6cf',
+                  borderRadius: '0.375rem',
+                  backgroundColor: 'transparent',
+                  color: '#191919ff',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
                 onClick={() => setShowRemoveModal(false)}
               >
-                <span className="truncate">Cancel</span>
+                Cancel
               </button>
               <button 
-                className={`footer-btn btn-danger ${studentsToRemove.length === 0 ? 'disabled' : ''}`}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  backgroundColor: studentsToRemove.length === 0 ? '#e2d6cf' : '#dc2626',
+                  color: '#ffffff',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  cursor: studentsToRemove.length === 0 ? 'not-allowed' : 'pointer',
+                }}
                 onClick={handleRemoveStudents}
                 disabled={studentsToRemove.length === 0}
               >
-                <span className="truncate">Remove Selected</span>
+                Remove Selected
               </button>
             </div>
           </div>

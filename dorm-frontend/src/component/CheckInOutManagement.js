@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass
+    
+ } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutManagement = () => {
   const { user } = useAuth();
@@ -163,9 +167,7 @@ const CheckInOutManagement = () => {
       {/* Search Bar */}
       <div className="search-section">
         <div className="search-container">
-          <div className="search-icon">
-            <span className="material-symbols-outlined">search</span>
-          </div>
+          
           <input
             type="text"
             className="search-input"
@@ -317,9 +319,10 @@ const CheckInOutManagement = () => {
           background: white;
           border-radius: 8px;
           border: 1px solid #d1d5db;
-          max-width: 400px;
+          
           height: 48px;
           overflow: hidden;
+          width:100%
         }
 
         .search-icon {
@@ -334,10 +337,11 @@ const CheckInOutManagement = () => {
           flex: 1;
           border: none;
           outline: none;
-          padding: 12px 12px 12px 0;
+          padding: 12px 12px 12px 12px;
           font-size: 14px;
           color: #111827;
           background: transparent;
+          width:100%
         }
 
         .search-input::placeholder {
@@ -370,8 +374,8 @@ const CheckInOutManagement = () => {
           padding: 16px 24px;
           text-align: left;
           font-size: 12px;
-          font-weight: 600;
-          color: #6b7280;
+          font-weight: bold;
+          color: #000000;
           text-transform: uppercase;
           letter-spacing: 0.05em;
           border-bottom: 1px solid #e5e7eb;
@@ -459,7 +463,7 @@ const CheckInOutManagement = () => {
         }
 
         .btn-approve {
-          background-color: #10b981;
+          background-color: #228B22;
           color: white;
         }
 
@@ -468,7 +472,7 @@ const CheckInOutManagement = () => {
         }
 
         .btn-reject {
-          background-color: #ef4444;
+          background-color: #DC2626;
           color: white;
         }
 

@@ -272,7 +272,7 @@ const CheckInOutPage = () => {
                         left: '0.75rem',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        color: '#7d2923',
+                        color: '#CD853F',
                         fontSize: '1rem'
                       }}>
                         <FontAwesomeIcon icon={faDoorOpen} />
@@ -394,7 +394,7 @@ const CheckInOutPage = () => {
                       left: '0.75rem',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      color: '#7d2923',
+                      color: '#CD853F',
                       fontSize: '1rem'
                     }}>
                       <FontAwesomeIcon icon={faCalendar} />

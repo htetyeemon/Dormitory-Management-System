@@ -3,6 +3,16 @@ import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faPeopleLine,
+  faWindowRestore,faAlarmClock,faTriangleExclamation,
+  faUserPlus,
+  faEye,
+  faCheckToSlot,
+  faBullhorn
+    
+ } from '@fortawesome/free-solid-svg-icons';
+
 
 const ManagerDashboard = () => {
   const { user } = useAuth();
@@ -11,6 +21,8 @@ const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { managerId } = useParams();
+
+
 
   useEffect(() => {
     fetchDashboardData();
@@ -42,7 +54,7 @@ const ManagerDashboard = () => {
   const buttonStyle = {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'left',
     gap: '0.5rem',
     width: '100%',
     cursor: 'pointer',
@@ -54,14 +66,9 @@ const ManagerDashboard = () => {
     fontWeight: 600,
     lineHeight: 'normal',
     border: 'none',
-    transition: 'all 0.2s ease-in-out',
+    transition: 'all 0.03s ease-in-out',
   };
 
-  const primaryButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#4F46E5',
-    color: 'white',
-  };
 
   const secondaryButtonStyle = {
     ...buttonStyle,
@@ -165,7 +172,10 @@ const ManagerDashboard = () => {
           paddingTop: '1.5rem',
         }}>
           <div style={cardStyle}>
-            <span style={{ color: '#3b82f6', fontSize: '1.875rem' }}>👥</span>
+            <div style={{ color: '#CD853F',
+                  fontSize: '1.875rem' }}>
+                <FontAwesomeIcon icon={faPeopleLine} />
+              </div>
             <div>
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400 }}>
                 Total Students
@@ -177,7 +187,10 @@ const ManagerDashboard = () => {
           </div>
           
           <div style={cardStyle}>
-            <span style={{ color: '#22c55e', fontSize: '1.875rem' }}>🚪</span>
+            <div style={{ color: '#CD853F',
+                  fontSize: '1.875rem' }}>
+                <FontAwesomeIcon icon={faWindowRestore} />
+              </div>
             <div>
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400 }}>
                 Available Rooms
@@ -189,7 +202,10 @@ const ManagerDashboard = () => {
           </div>
           
           <div style={cardStyle}>
-            <span style={{ color: '#f97316', fontSize: '1.875rem' }}>⏰</span>
+            <div style={{ color: '#CD853F',
+                  fontSize: '1.875rem' }}>
+                <FontAwesomeIcon icon={faAlarmClock} />
+              </div>
             <div>
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400 }}>
                 Pending Check-ins
@@ -201,7 +217,11 @@ const ManagerDashboard = () => {
           </div>
           
           <div style={cardStyle}>
-            <span style={{ color: '#ef4444', fontSize: '1.875rem' }}>⚠️</span>
+            <div style={{ color: '#CD853F',
+                  fontSize: '1.875rem' }}>
+                <FontAwesomeIcon icon={faTriangleExclamation} />
+              </div>
+        
             <div>
               <p style={{ color: '#64748b', fontSize: '0.875rem', fontWeight: 400 }}>
                 Active Complaints
@@ -227,7 +247,6 @@ const ManagerDashboard = () => {
               <h3 style={{ color: '#0f172a', fontSize: '1.375rem', fontWeight: 700 }}>
                 Recent Announcements
               </h3>
-              <span style={{ color: '#1173d4', fontSize: '1.5rem' }}>📢</span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {dashboardData?.announcements?.map((announcement) => (
@@ -257,42 +276,54 @@ const ManagerDashboard = () => {
           {/* Right Column - Action Buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <button
-              style={primaryButtonStyle}
+              style={secondaryButtonStyle}
               onClick={handleAssignRoom}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#4338CA'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4F46E5'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#ecdeddff'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
             >
-              <span style={{ fontSize: '1.25rem' }}>➕</span>
+              <div style={{ color: '#CD853F',
+                  fontSize: '1.2rem' }}>
+                <FontAwesomeIcon icon={faUserPlus} />
+              </div>
               <span>Assign Room</span>
             </button>
             
             <button
               style={secondaryButtonStyle}
               onClick={handleViewComplaints}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#ecdeddff'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
             >
-              <span style={{ fontSize: '1.25rem' }}>👁️</span>
+              <div style={{ color: '#CD853F',
+                  fontSize: '1.2rem' }}>
+                <FontAwesomeIcon icon={faEye} />
+              </div>
               <span>View Complaints</span>
             </button>
             
             <button
               style={secondaryButtonStyle}
               onClick={handleCreateAnnouncement}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#ecdeddff'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
             >
-              <span style={{ fontSize: '1.25rem' }}>📢</span>
+              <div style={{ color: '#CD853F',
+                  fontSize: '1.2rem' }}>
+                <FontAwesomeIcon icon={faBullhorn} />
+              </div>
               <span>Create Announcement</span>
             </button>
             
             <button
               style={secondaryButtonStyle}
               onClick={handleCheckRequests}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
-            >
-              <span style={{ fontSize: '1.25rem' }}>📋</span>
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#ecdeddff'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+            > 
+            <div style={{ color: '#CD853F',
+                  fontSize: '1.2rem' }}>
+                <FontAwesomeIcon icon={faCheckToSlot} />
+              </div>
               <span>Check Requests</span>
             </button>
           </div>

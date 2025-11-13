@@ -218,7 +218,7 @@ const RoomPage = () => {
                     alignItems: 'flex-start',
                     gap: '1rem',
                   }}>
-                    <span style={{ color: '#7d2923', fontSize: '1.5rem' }}>
+                    <span style={{ color: '#CD853F', fontSize: '1.5rem' }}>
                       <FontAwesomeIcon icon={faUser} />
                     </span>
                     <div style={{
@@ -282,7 +282,7 @@ const RoomPage = () => {
                   gap: '1.25rem',
                 }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px'}}>
+                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px'}}>
                       <FontAwesomeIcon icon={faPhone} />
                     </span>
                     <div>
@@ -303,7 +303,7 @@ const RoomPage = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                       <FontAwesomeIcon icon={faEnvelope} />
                     </span>
                     <div>
@@ -324,7 +324,7 @@ const RoomPage = () => {
                     </div>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <span style={{ color: '#7d2923', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                    <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
                       <FontAwesomeIcon icon={faLocationDot} />
                     </span>
                     <div>
