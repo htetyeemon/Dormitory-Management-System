@@ -3,6 +3,10 @@ import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import "../css/ManagerRooms.css";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {faCircleXmark, faMagnifyingGlass
+    
+ } from '@fortawesome/free-solid-svg-icons';
 
 const ManagerRooms = () => {
   const { user } = useAuth();
@@ -223,33 +227,7 @@ const ManagerRooms = () => {
             </tbody>
           </table>
           
-          {/* Pagination */}
-          <div className="pagination-container">
-            <p className="pagination-text">
-              Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredRooms.length}</span> of <span className="font-medium">30</span> results
-            </p>
-            <nav aria-label="Pagination" className="pagination-nav">
-              <button className="pagination-btn">
-                <span className="sr-only">Previous</span>
-                <span className="material-symbols-outlined text-sm">chevron_left</span>
-              </button>
-              <button className="pagination-btn pagination-btn-active">
-                1
-              </button>
-              <button className="pagination-btn">
-                2
-              </button>
-              <span className="pagination-ellipsis">...</span>
-              <button className="pagination-btn hidden md:inline-flex">
-                6
-              </button>
-              <button className="pagination-btn">
-                <span className="sr-only">Next</span>
-                <span className="material-symbols-outlined text-sm">chevron_right</span>
-              </button>
-            </nav>
-            <div className="hidden md:flex flex-1"></div>
-          </div>
+          
         </div>
       </div>
 
@@ -271,7 +249,7 @@ const ManagerRooms = () => {
                 className="modal-close-btn"
                 onClick={() => setShowAssignModal(false)}
               >
-                <span className="material-symbols-outlined text-2xl">close</span>
+                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
               </button>
             </div>
 
@@ -302,7 +280,7 @@ const ManagerRooms = () => {
                     onChange={(e) => setStudentSearch(e.target.value)}
                   />
                   <div className="search-input-icon">
-                    <span className="material-symbols-outlined text-2xl">search</span>
+                    <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faMagnifyingGlass} /></span>
                   </div>
                 </div>
                 <p className="helper-text">
@@ -386,7 +364,7 @@ const ManagerRooms = () => {
                 className="modal-close-btn"
                 onClick={() => setShowRemoveModal(false)}
               >
-                <span className="material-symbols-outlined text-2xl">close</span>
+                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
               </button>
             </div>
 

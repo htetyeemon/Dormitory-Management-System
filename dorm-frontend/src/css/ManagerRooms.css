@@ -139,8 +139,8 @@
   padding: 1rem 1.5rem;
   text-align: left;
   font-size: 0.75rem;
-  font-weight: 600;
-  color: #475569;
+  font-weight: bold;
+  color: #000000;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   font-family: inherit;
@@ -221,7 +221,7 @@
   border-radius: 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background-color: #228B22;
   color: white;
   border: none;
   cursor: pointer;
@@ -233,7 +233,7 @@
 }
 
 .add-student-btn:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: #1C711C;
   transform: translateY(-1px);
   box-shadow: 0 4px 8px 0 rgba(59, 130, 246, 0.3);
 }
@@ -263,7 +263,7 @@
   justify-content: center;
   padding: 0.5rem 1rem;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
+  background: #DC2626;
   color: white;
   border: none;
   font-size: 0.8rem;
@@ -481,17 +481,18 @@
   justify-content: center;
   padding: 0.375rem;
   border-radius: 0.5rem;
-  color: #64748b;
+  color: #f5440e;
   background: transparent;
   border: none;
   cursor: pointer;
   transition: all 0.15s ease;
   flex-shrink: 0;
+  
 }
 
 .modal-close-btn:hover {
-  background-color: #e2e8f0;
-  color: #374151;
+  
+  color: #e44608;
 }
 
 .dark .modal-close-btn:hover {
@@ -740,7 +741,7 @@
 
 .footer-btn {
   display: flex;
-  height: 3rem;
+  height: 2.3em;
   width: 100%;
   min-width: 5.25rem;
   cursor: pointer;
