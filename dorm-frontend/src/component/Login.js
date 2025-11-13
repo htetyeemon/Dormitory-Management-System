@@ -66,7 +66,7 @@ const Login = () => {
           <h2 style={{
             marginTop: '0.2rem',
             fontSize: '2rem',
-            fontWeight: 700,
+            fontWeight: 600,
             color: '#000000',
             lineHeight: 1.25,
             letterSpacing: '-0.033em',
