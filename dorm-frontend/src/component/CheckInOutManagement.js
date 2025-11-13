@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutManagement = () => {
   const { user } = useAuth();
@@ -212,9 +214,9 @@ const CheckInOutManagement = () => {
       {/* Search Bar */}
       <div className="search-section">
         <div className="search-container">
-          <div className="search-icon">
-            <span className="material-symbols-outlined">search</span>
-          </div>
+          <span className="search-icon">
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
+          </span>
           <input
             type="text"
             className="search-input"
@@ -410,7 +412,7 @@ const CheckInOutManagement = () => {
                   }
                 }}
               >
-                →
+                 →
               </button>
             </nav>
           </div>
@@ -454,11 +456,12 @@ const CheckInOutManagement = () => {
           display: flex;
           align-items: center;
           background: white;
-          border-radius: 8px;
-          border: 1px solid #d1d5db;
-          max-width: 400px;
-          height: 48px;
+          border-radius: 0.5rem;
+          border: 1px solid #e8c8b5ff;
+          height: 3rem;
           overflow: hidden;
+          width: 100%;
+          max-width: 400px;
         }
 
         .search-icon {
@@ -475,9 +478,11 @@ const CheckInOutManagement = () => {
           border: none;
           outline: none;
           padding: 12px 12px 12px 0;
-          font-size: 14px;
-          color: #111827;
+          font-size: 1rem;
+          color: #191919ff;
           background: transparent;
+          width: 100%;
+          font-weight: 400;
         }
 
         .search-input::placeholder {
@@ -512,9 +517,9 @@ const CheckInOutManagement = () => {
         .table-head {
           padding: 1rem;
           text-align: left;
-          font-size: 12px;
+          font-size: 0.875rem;
           font-weight: 600;
-          color: #6b7280;
+          color: #000000;
           text-transform: uppercase;
           letter-spacing: 0.05em;
           border-bottom: 1px solid #e2d6cf;

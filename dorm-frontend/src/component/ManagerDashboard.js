@@ -3,6 +3,17 @@ import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faPeopleLine,
+  faWindowRestore,
+  faAlarmClock,
+  faTriangleExclamation,
+  faUserPlus,
+  faEye,
+  faCheckToSlot,
+  faBullhorn
+} from '@fortawesome/free-solid-svg-icons';
 
 const ManagerDashboard = () => {
   const { user } = useAuth();
@@ -11,6 +22,9 @@ const ManagerDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { managerId } = useParams();
+  const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
+  const [pendingCheckIns, setPendingCheckIns] = useState(0);
+  const [activeComplaints, setActiveComplaints] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
@@ -88,8 +102,8 @@ const ManagerDashboard = () => {
   const buttonStyle = {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0.5rem',
+    justifyContent: 'left',
+    gap: '0.75rem',
     width: '100%',
     cursor: 'pointer',
     overflow: 'hidden',
@@ -99,18 +113,7 @@ const ManagerDashboard = () => {
     fontSize: '0.875rem',
     fontWeight: 600,
     lineHeight: 'normal',
-    border: 'none',
-    transition: 'all 0.2s ease-in-out',
-  };
-
-  const primaryButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#4F46E5',
-    color: 'white',
-  };
-
-  const secondaryButtonStyle = {
-    ...buttonStyle,
+    border: '1px solid #e8c8b5ff',
     backgroundColor: 'white',
     color: '#374151',
     transition: 'all 0.03s ease-in-out',
@@ -190,8 +193,8 @@ const ManagerDashboard = () => {
           gap: '1.5rem',
           marginBottom: '2rem',
         }}>
-          <div style={cardStyle}>
-            <span style={{ color: '#3b82f6', fontSize: '1.875rem' }}>👥</span>
+          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faPeopleLine} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                 Total Students
@@ -201,9 +204,9 @@ const ManagerDashboard = () => {
               </p>
             </div>
           </div>
-          
-          <div style={cardStyle}>
-            <span style={{ color: '#22c55e', fontSize: '1.875rem' }}>🚪</span>
+
+          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faWindowRestore} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                 Available Rooms
@@ -213,9 +216,9 @@ const ManagerDashboard = () => {
               </p>
             </div>
           </div>
-          
-          <div style={cardStyle}>
-            <span style={{ color: '#f97316', fontSize: '1.875rem' }}>⏰</span>
+
+          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faAlarmClock} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                 Pending Check-ins
@@ -225,9 +228,9 @@ const ManagerDashboard = () => {
               </p>
             </div>
           </div>
-          
-          <div style={cardStyle}>
-            <span style={{ color: '#ef4444', fontSize: '1.875rem' }}>⚠️</span>
+
+          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faTriangleExclamation} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
                 Active Complaints
@@ -246,75 +249,189 @@ const ManagerDashboard = () => {
           gap: '2rem',
           alignItems: 'stretch',
         }}>
-          {/* Left Column - Recent Announcements */}
-          <div style={cardStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <h3 style={{ color: '#0f172a', fontSize: '1.375rem', fontWeight: 700 }}>
-                Recent Announcements
-              </h3>
-              <span style={{ color: '#1173d4', fontSize: '1.5rem' }}>📢</span>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {dashboardData?.announcements?.map((announcement) => (
-                <div key={announcement.id} style={{
-                  borderBottom: '1px solid #e2e8f0',
-                  paddingBottom: '1rem',
+          {/* Announcements - Left Column */}
+          <div style={{
+            ...cardStyle,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: '1.5rem',
+            minHeight: '400px',
+          }}>
+            <h2 style={{
+              color: '#000000',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              marginBottom: '1.5rem',
+            }}>
+              Recent Announcements
+            </h2>
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1.5rem',
+              flex: 1,
+            }}>
+              {recentAnnouncements.map((announcement, index) => {
+                const isExpanded = expandedAnnouncements.has(announcement.id);
+                const shouldShowReadMore = needsReadMore(announcement.description);
+                return (
+                  <div key={announcement.id} style={{
+                    borderTop: index > 0 ? '1px solid #e2d6cf' : 'none',
+                    paddingTop: index > 0 ? '1.5rem' : '0',
+                  }}>
+                    <h3 style={{
+                      fontWeight: 700,
+                      color: '#000000',
+                      fontSize: '1.1rem',
+                      marginBottom: '0.5rem',
+                    }}>
+                      {announcement.title}
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#928d8dff',
+                      marginBottom: '0.5rem',
+                    }}>
+                      {new Date(announcement.dateTime).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric'
+                      })}
+                    </p>
+                    <div style={{
+                      fontSize: '0.875rem',
+                      color: '#191919ff',
+                      lineHeight: 1.5,
+                    }}>
+                      <div
+                        style={{
+                          display: '-webkit-box',
+                          WebkitLineClamp: isExpanded ? 'unset' : 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden',
+                          overflowWrap: 'break-word',
+                          wordBreak: 'break-word',
+                        }}
+                      >
+                        {announcement.description}
+                      </div>
+                      {shouldShowReadMore && (
+                        <button
+                          onClick={() => toggleReadMore(announcement.id)}
+                          style={{
+                            color: '#806e6eff',
+                            fontWeight: 500,
+                            fontSize: '0.875rem',
+                            textDecoration: 'none',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 0,
+                            marginTop: '0.5rem',
+                            alignSelf: 'flex-start',
+                          }}
+                          onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                          onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                        >
+                          {isExpanded ? 'Read Less ↑' : 'Read More ↓'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+              {recentAnnouncements.length === 0 && (
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flex: 1,
+                  color: '#191919ff',
                 }}>
-                  <h4 style={{ fontWeight: 600, color: '#0f172a' }}>
-                    {announcement.title}
-                  </h4>
-                  <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem' }}>
-                    {new Date(announcement.dateTime).toLocaleDateString()}
-                  </p>
-                  <p style={{ fontSize: '0.875rem', color: '#334155', marginTop: '0.5rem' }}>
-                    {announcement.description}
-                  </p>
+                  No announcements available
                 </div>
               )}
             </div>
           </div>
 
           {/* Right Column - Action Buttons */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <button
-              style={primaryButtonStyle}
-              onClick={handleAssignRoom}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#4338CA'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#4F46E5'}
-            >
-              <span style={{ fontSize: '1.25rem' }}>➕</span>
-              <span>Assign Room</span>
-            </button>
-            
-            <button
-              style={secondaryButtonStyle}
-              onClick={handleViewComplaints}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
-            >
-              <span style={{ fontSize: '1.25rem' }}>👁️</span>
-              <span>View Complaints</span>
-            </button>
-            
-            <button
-              style={secondaryButtonStyle}
-              onClick={handleCreateAnnouncement}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
-            >
-              <span style={{ fontSize: '1.25rem' }}>📢</span>
-              <span>Create Announcement</span>
-            </button>
-            
-            <button
-              style={secondaryButtonStyle}
-              onClick={handleCheckRequests}
-              onMouseEnter={(e) => e.target.backgroundColor = '#F9FAFB'}
-              onMouseLeave={(e) => e.target.backgroundColor = 'white'}
-            >
-              <span style={{ fontSize: '1.25rem' }}>📋</span>
-              <span>Check Requests</span>
-            </button>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1.5rem',
+            height: '100%',
+          }}>
+            <div style={{
+              ...cardStyle,
+              display: 'flex',
+              flexDirection: 'column',
+              padding: '1.5rem',
+              minHeight: '400px',
+            }}>
+              <h3 style={{
+                color: '#000000',
+                fontSize: '1.5rem',
+                fontWeight: 700,
+                marginBottom: '1.5rem',
+              }}>
+                Quick Actions
+              </h3>
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem',
+                flex: 1,
+                justifyContent: 'space-around',
+              }}>
+                <button
+                  style={buttonStyle}
+                  onClick={handleAssignRoom}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5ebe6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  <span style={{ color: '#CD853F', fontSize: '1.2rem' }}>
+                    <FontAwesomeIcon icon={faUserPlus} />
+                  </span>
+                  <span>Assign Room</span>
+                </button>
+
+                <button
+                  style={buttonStyle}
+                  onClick={handleViewComplaints}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5ebe6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  <span style={{ color: '#CD853F', fontSize: '1.2rem' }}>
+                    <FontAwesomeIcon icon={faEye} />
+                  </span>
+                  <span>View Complaints</span>
+                </button>
+
+                <button
+                  style={buttonStyle}
+                  onClick={handleCreateAnnouncement}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5ebe6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  <span style={{ color: '#CD853F', fontSize: '1.2rem' }}>
+                    <FontAwesomeIcon icon={faBullhorn} />
+                  </span>
+                  <span>Create Announcement</span>
+                </button>
+
+                <button
+                  style={buttonStyle}
+                  onClick={handleCheckRequests}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5ebe6'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                >
+                  <span style={{ color: '#CD853F', fontSize: '1.2rem' }}>
+                    <FontAwesomeIcon icon={faCheckToSlot} />
+                  </span>
+                  <span>Check Requests</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

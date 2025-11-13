@@ -492,7 +492,7 @@ const ServicePage = () => {
                           'Select time...'
                         }
                       </span>
-                      <span>▼</span>
+                      <span>?</span>
                     </div>
                   </div>
                 </div>
@@ -629,7 +629,7 @@ const ServicePage = () => {
                   </span>
                   <div>
                     <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>General Maintenance</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Fri, 9:00 AM–5:00 PM</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Fri, 9:00 AM 5:00 PM</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
@@ -638,7 +638,7 @@ const ServicePage = () => {
                   </span>
                   <div>
                     <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Sat, 8:00 AM–8:00 PM</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Sat, 8:00 AM 8:00 PM</p>
                   </div>
                 </div>
               </div>
@@ -869,7 +869,7 @@ const ServicePage = () => {
                 cursor: 'pointer',
                 color: '#191919ff',
               }}>
-                ✕
+                ?
               </button>
             </div>
             
@@ -1042,7 +1042,7 @@ const ServicePage = () => {
                 cursor: 'pointer',
                 color: '#191919ff',
               }}>
-                ✕
+                ?
               </button>
             </div>
 

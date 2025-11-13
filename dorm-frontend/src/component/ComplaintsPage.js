@@ -173,9 +173,24 @@ const ComplaintsPage = () => {
 
   const getStatusBadge = (status) => {
     const statusMap = {
-      'PENDING': { label: 'Pending', class: 'status-pending' },
-      'IN PROGRESS': { label: 'In Progress', class: 'status-in-progress' },
-      'RESOLVED': { label: 'Resolved', class: 'status-resolved' }
+      'PENDING': { 
+        label: 'PENDING', 
+        backgroundColor: '#fff3cd',
+        color: '#856404',
+        borderColor: '#ffeaa7'
+      },
+      'IN PROGRESS': { 
+        label: 'IN PROGRESS', 
+        backgroundColor: '#cce7ff',
+        color: '#004085',
+        borderColor: '#b3d7ff'
+      },
+      'RESOLVED': { 
+        label:'RESOLVED', 
+        backgroundColor: '#d4edda',
+        color: '#155724',
+        borderColor: '#c3e6cb'
+      }
     };
 
     const statusInfo = statusMap[status] || statusMap['PENDING'];
@@ -202,10 +217,24 @@ const ComplaintsPage = () => {
 
   const getPriorityBadge = (priority) => {
     const priorityMap = {
-      'HIGH': { label: 'High', class: 'priority-high' },
-      'MEDIUM': { label: 'Medium', class: 'priority-medium' },
-      'LOW': { label: 'Low', class: 'priority-low' },
-      'URGENT': { label: 'Urgent', class: 'priority-urgent' }
+      'high': { 
+        label: 'HIGH', 
+        backgroundColor: '#fee2e2',
+        color: '#dc2626',
+        borderColor: '#fecaca'
+      },
+      'medium': { 
+        label: 'MEDIUM', 
+        backgroundColor: '#fef3c7',
+        color: '#d97706',
+        borderColor: '#fde68a'
+      },
+      'low': { 
+        label: 'LOW', 
+        backgroundColor: '#d1fae5',
+        color: '#059669',
+        borderColor: '#a7f3d0'
+      }
     };
 
     const priorityInfo = priorityMap[priority] || { 
@@ -848,7 +877,7 @@ const ComplaintsPage = () => {
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                     >
-                      Read More ↓
+                      Read More ?
                     </button>
                   )}
                 </div>
@@ -1125,12 +1154,12 @@ const ComplaintsPage = () => {
                         {expandedViewModal ? (
                           <>
                             <span>Show Less</span>
-                            <span>↑</span>
+                            <span>?</span>
                           </>
                         ) : (
                           <>
                             <span>Read More</span>
-                            <span>↓</span>
+                            <span>?</span>
                           </>
                         )}
                       </button>
