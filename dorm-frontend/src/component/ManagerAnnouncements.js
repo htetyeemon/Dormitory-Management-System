@@ -99,13 +99,24 @@ const ManagerAnnouncements = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate form data - trim whitespace and check if empty
+    const trimmedTitle = formData.title.trim();
+    const trimmedDescription = formData.description.trim();
+    
+    if (!trimmedTitle || !trimmedDescription) {
+      setError(`Please fill in both title and description fields`);
+      return;
+    }
+    
     try {
       if (editingAnnouncement) {
         const response = await managerAPI.updateAnnouncement(
           managerId || user.id,
           editingAnnouncement.id,
           {
-            ...formData,
+            title: trimmedTitle,
+            description: trimmedDescription,
             dateTime: new Date().toISOString()
           }
         );
@@ -116,7 +127,8 @@ const ManagerAnnouncements = () => {
         const response = await managerAPI.createAnnouncement(
           managerId || user.id,
           {
-            ...formData,
+            title: trimmedTitle,
+            description: trimmedDescription,
             dateTime: new Date().toISOString()
           }
         );
@@ -124,6 +136,7 @@ const ManagerAnnouncements = () => {
       }
       setShowModal(false);
       setFormData({ title: '', description: '' });
+      setError(null); // Clear any previous errors
     } catch (err) {
       setError(`Failed to ${editingAnnouncement ? 'update' : 'create'} announcement`);
       console.error('Error saving announcement:', err);
@@ -316,6 +329,9 @@ const ManagerAnnouncements = () => {
     backgroundColor: '#fafafa'
   };
 
+  // Check if form is valid (both fields filled and not just whitespace)
+  const isFormValid = formData.title.trim() && formData.description.trim();
+
   if (loading) {
     return (
       <div style={{ 
@@ -337,7 +353,7 @@ const ManagerAnnouncements = () => {
     );
   }
 
-  if (error) {
+  if (error && !showModal) {
     return (
       <div style={{
         padding: '2rem',
@@ -417,9 +433,9 @@ const ManagerAnnouncements = () => {
                 minWidth: '200px'
               }}
               onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'linear-gradient(135deg, rgb(34, 139, 34), rgb(34, 139, 34))';
+                e.target.style.backgroundColor = '#1C711C';
                 e.target.style.transform = 'translateY(-1px)';
-                e.target.style.boxShadow = '0 4px 8px 0 rgba(239, 68, 68, 0.3)';
+                e.target.style.boxShadow = '0 4px 8px 0 rgba(34, 139, 34, 0.3)';
               }}
               onMouseLeave={(e) => {
                 e.target.style.background = 'rgb(34, 139, 34)';
@@ -530,6 +546,22 @@ const ManagerAnnouncements = () => {
             </span>
           </div>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div style={{
+            padding: '1rem',
+            backgroundColor: '#fee2e2',
+            border: '1px solid #fecaca',
+            borderRadius: '0.5rem',
+            color: '#dc2626',
+            marginBottom: '1.5rem',
+            fontSize: '0.875rem',
+            fontWeight: 500,
+          }}>
+            {error}
+          </div>
+        )}
 
         {/* Announcements List */}
         <div style={{
@@ -646,7 +678,7 @@ const ManagerAnnouncements = () => {
                             height: '2.25rem',
                           }}
                           onMouseEnter={(e) => {
-                            e.target.style.background = 'linear-gradient(135deg, #dc2626, #b91c1c)';
+                            e.target.style.background = '#b02e26';
                             e.target.style.transform = 'translateY(-1px)';
                             e.target.style.boxShadow = '0 4px 8px 0 rgba(239, 68, 68, 0.3)';
                           }}
@@ -989,19 +1021,29 @@ const ManagerAnnouncements = () => {
                 <button
                   type="submit"
                   onClick={handleSubmit}
+                  disabled={!isFormValid}
                   style={{
                     padding: '0.75rem 1.5rem',
                     border: 'none',
                     borderRadius: '0.5rem',
-                    backgroundColor: '#9b140bff',
+                    backgroundColor: !isFormValid ? '#cccccc' : '#9b140bff',
                     color: 'white',
                     fontSize: '1rem',
                     fontWeight: 600,
-                    cursor: 'pointer',
+                    cursor: !isFormValid ? 'not-allowed' : 'pointer',
                     transition: 'all 0.2s ease',
+                    opacity: !isFormValid ? 0.6 : 1,
                   }}
-                  onMouseEnter={(e) => e.target.style.backgroundColor = '#b14841ff'}
-                  onMouseLeave={(e) => e.target.style.backgroundColor = '#9b140bff'}
+                  onMouseEnter={(e) => {
+                    if (isFormValid) {
+                      e.target.style.backgroundColor = '#b14841ff';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (isFormValid) {
+                      e.target.style.backgroundColor = '#9b140bff';
+                    }
+                  }}
                 >
                   {editingAnnouncement ? 'Update Announcement' : 'Save Announcement'}
                 </button>
