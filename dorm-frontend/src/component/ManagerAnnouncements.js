@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
-import { useParams, useLocation } from 'react-router-dom';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBullhorn, faSquarePlus, faSearch, faCalendarDays, faSort, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { useParams } from 'react-router-dom';
+import '../css/ManagerAnnouncements.css'
 
 const ManagerAnnouncements = () => {
   const { user } = useAuth();
@@ -31,14 +30,10 @@ const ManagerAnnouncements = () => {
 
   useEffect(() => {
     fetchAnnouncements();
-    
-    // Check if we should open the create modal automatically
-    if (location.state?.openCreateModal) {
-      handleCreate();
-      // Clear the state to prevent reopening on refresh
-      window.history.replaceState({}, document.title);
-    }
-  }, [managerId, location.state]);
+    // Check for dark mode preference
+    const isDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isDark);
+  }, [managerId]);
 
   const fetchAnnouncements = async () => {
     try {

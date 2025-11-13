@@ -4,14 +4,9 @@ import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import "../css/ManagerRooms.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-  faCircleXmark, 
-  faMagnifyingGlass,
-  faDoorOpen,
-  faUserPlus,
-  faUserMinus,
-  faSort
-} from '@fortawesome/free-solid-svg-icons';
+import {faCircleXmark, faMagnifyingGlass
+    
+ } from '@fortawesome/free-solid-svg-icons';
 
 const ManagerRooms = () => {
   const { user } = useAuth();
@@ -235,19 +230,12 @@ const ManagerRooms = () => {
   }
 
   return (
-    <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
-      <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header Section - Consistent with Student Room Page */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{
-            color: '#000000',
-            fontSize: '2.25rem',
-            fontWeight: 600,
-            lineHeight: 1.25,
-            letterSpacing: '-0.033em',
-            marginBottom: '0.5rem',
-          }}>
-            Dormitory Rooms Management
+    <div className="manager-rooms-container">
+      <div className="manager-header">
+        {/* Header */}
+        <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <h1 className="header-title">
+            Dormitory Rooms
           </h1>
           <p style={{
             color: '#191919ff',
@@ -258,34 +246,13 @@ const ManagerRooms = () => {
           </p>
         </div>
 
-        {/* Search and Sort Controls */}
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-          marginBottom: '2rem',
-        }}>
-          {/* Search Input */}
-          <div style={{
-            position: 'relative',
-            flexGrow: 1,
-            minWidth: '240px'
-          }}>
-            <span style={{
-              position: 'absolute',
-              left: '12px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#CD853F',
-              fontSize: '16px'
-            }}>
-              <FontAwesomeIcon icon={faMagnifyingGlass} />
-            </span>
-            <input
-              type="text"
-              placeholder="Search rooms..."
+        {/* Search Bar - Full width */}
+        <div className="search-container-full">
+          <div className="search-wrapper-full">
+            
+            <input 
+              className="search-input-full"
+              placeholder="Search for a room..."
               value={searchTerm}
               onChange={handleSearchChange}
               style={{
@@ -308,6 +275,15 @@ const ManagerRooms = () => {
               onFocus={(e) => e.target.style.borderColor = '#7d2923'}
               onBlur={(e) => e.target.style.borderColor = '#e8c8b5ff'}
             />
+            <span style={{
+              position: 'absolute',
+              left: '0.75rem',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              color: '#CD853F',
+            }}>
+              <FontAwesomeIcon icon={faMagnifyingGlass} />
+            </span>
           </div>
 
           {/* Sort Dropdown */}
@@ -399,21 +375,13 @@ const ManagerRooms = () => {
                 </th>
               </tr>
             </thead>
-            <tbody>
-              {currentRooms.map((room) => {
+            <tbody className="table-body">
+              {filteredRooms.map((room) => {
                 const isOccupied = room.students && room.students.length > 0;
                 return (
-                  <tr key={room.roomNum} style={{ borderBottom: '1px solid #e2d6cf' }}>
-                    <td style={{
-                      padding: '1rem',
-                      fontSize: '0.875rem',
-                      color: '#000000',
-                      fontWeight: 700,
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <FontAwesomeIcon icon={faDoorOpen} style={{ color: '#CD853F' }} />
-                        {room.roomNum}
-                      </div>
+                  <tr key={room.roomNum} className="table-row">
+                    <td className="table-cell table-cell-primary">
+                      {room.roomNum}
                     </td>
                     <td style={{
                       padding: '1rem',
@@ -485,116 +453,120 @@ const ManagerRooms = () => {
               })}
             </tbody>
           </table>
+          
+          
         </div>
+      </div>
 
-        {/* Pagination - Same as announcements page */}
-        {totalPages > 1 && (
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            paddingTop: '1.5rem',
-          }}>
-            <nav style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-            }}>
-              {/* Previous Button */}
-              <button
-                onClick={handlePrevPage}
-                disabled={currentPage === 1}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '2.25rem',
-                  height: '2.25rem',
-                  borderRadius: '0.5rem',
-                  transition: 'background-color 0.2s',
-                  border: '1px solid #e8c8b5ff',
-                  backgroundColor: currentPage === 1 ? '#faf7f5' : 'white',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentPage === 1 ? 0.5 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== 1) {
-                    e.target.style.backgroundColor = '#faf7f5';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== 1) {
-                    e.target.style.backgroundColor = 'white';
-                  }
-                }}
+      {/* Assign Student Modal */}
+      {showAssignModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            {/* Modal Header */}
+            <div className="modal-header">
+              <div className="flex flex-col gap-1">
+                <h2 className="modal-title">
+                  Assign Student to Room {selectedRoom?.roomNum}
+                </h2>
+                <p className="modal-subtitle">
+                  Fill in the details below to assign a student to this room.
+                </p>
+              </div>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowAssignModal(false)}
               >
-                ←
+                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
               </button>
+            </div>
 
-              {/* Page Numbers */}
-              {getPageNumbers().map((page, index) => (
-                <button
-                  key={index}
-                  onClick={() => typeof page === 'number' && handlePageChange(page)}
-                  disabled={page === '...'}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '2.25rem',
-                    height: '2.25rem',
-                    borderRadius: '0.5rem',
-                    border: '1px solid #e8c8b5ff',
-                    backgroundColor: currentPage === page ? '#7d2923' : 'white',
-                    color: currentPage === page ? 'white' : '#191919ff',
-                    cursor: page === '...' ? 'default' : 'pointer',
-                    transition: 'background-color 0.2s',
-                  }}
-                  onMouseEnter={(e) => {
-                    if (page !== '...' && currentPage !== page) {
-                      e.target.style.backgroundColor = '#faf7f5';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (page !== '...' && currentPage !== page) {
-                      e.target.style.backgroundColor = 'white';
-                    }
-                  }}
-                >
-                  {page}
-                </button>
-              ))}
+            {/* Modal Body */}
+            <div className="modal-body">
+              {/* Room Number (Read-only) */}
+              <label className="form-label">
+                <p className="label-text">
+                  Room Number
+                </p>
+                <input 
+                  className="form-input form-input-readonly"
+                  readOnly 
+                  value={selectedRoom?.roomNum}
+                />
+              </label>
 
-              {/* Next Button */}
-              <button
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '2.25rem',
-                  height: '2.25rem',
-                  borderRadius: '0.5rem',
-                  transition: 'background-color 0.2s',
-                  border: '1px solid #e8c8b5ff',
-                  backgroundColor: currentPage === totalPages ? '#faf7f5' : 'white',
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  opacity: currentPage === totalPages ? 0.5 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (currentPage !== totalPages) {
-                    e.target.style.backgroundColor = '#faf7f5';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (currentPage !== totalPages) {
-                    e.target.style.backgroundColor = 'white';
-                  }
-                }}
+              {/* Student ID (Search) */}
+              <label className="form-label">
+                <p className="label-text">
+                  Student ID
+                </p>
+                <div className="search-input-wrapper">
+                  <input 
+                    className="form-input form-input-search"
+                    placeholder="Type to search by Student ID or Name"
+                    value={studentSearch}
+                    onChange={(e) => setStudentSearch(e.target.value)}
+                  />
+                  <div className="search-input-icon">
+                    <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faMagnifyingGlass} /></span>
+                  </div>
+                </div>
+                <p className="helper-text">
+                  Search by student's name or ID number to select.
+                </p>
+              </label>
+
+              {/* Student List */}
+              {studentSearch && (
+                <div className="student-list">
+                  {filteredStudents.map(student => (
+                    <div 
+                      key={student.id}
+                      className={`student-item ${selectedStudent?.id === student.id ? 'student-item-selected' : ''}`}
+                      onClick={() => setSelectedStudent(student)}
+                    >
+                      <div className="student-id">
+                        {student.id}
+                      </div>
+                      <div className="student-name">
+                        {student.name}
+                      </div>
+                    </div>
+                  ))}
+                  {filteredStudents.length === 0 && (
+                    <div className="empty-state">No students found</div>
+                  )}
+                </div>
+              )}
+
+              {/* Student Name (Auto-populated) */}
+              {selectedStudent && (
+                <label className="form-label">
+                  <p className="label-text">
+                    Student Name
+                  </p>
+                  <input 
+                    className="form-input form-input-readonly"
+                    readOnly 
+                    value={selectedStudent.name}
+                  />
+                </label>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="modal-footer">
+              <button 
+                className="footer-btn btn-secondary"
+                onClick={() => setShowAssignModal(false)}
               >
-                →
+                <span className="truncate">Back</span>
+              </button>
+              <button 
+                className={`footer-btn btn-primary ${!selectedStudent ? 'disabled' : ''}`}
+                onClick={handleAssignStudent}
+                disabled={!selectedStudent}
+              >
+                <span className="truncate">Assign Student</span>
               </button>
             </nav>
           </div>
@@ -618,19 +590,72 @@ const ManagerRooms = () => {
         </div>
       )}
 
-      {/* Remove Student Modal */}
+      {/* Remove Student Modal - Styled consistently */}
       {showRemoveModal && (
-        <div style={{
-          position: 'fixed',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 50,
-          padding: '1rem',
-        }}>
-          {/* ... existing modal content ... */}
+        <div className="modal-overlay">
+          <div className="modal-container">
+            {/* Modal Header */}
+            <div className="modal-header">
+              <div className="flex flex-col gap-1">
+                <h2 className="modal-title">
+                  Remove Students from Room {selectedRoom?.roomNum}
+                </h2>
+                <p className="modal-subtitle">
+                  Select students to remove from this room.
+                </p>
+              </div>
+              <button 
+                className="modal-close-btn"
+                onClick={() => setShowRemoveModal(false)}
+              >
+                <span className="material-symbols-outlined text-2xl"><FontAwesomeIcon icon={faCircleXmark} /></span>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="modal-body">
+              {/* Student List with Checkboxes */}
+              <div className="student-list">
+                {selectedRoom?.students && selectedRoom.students.length > 0 ? (
+                  selectedRoom.students.map(student => (
+                    <div key={student.id} className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        id={`student-${student.id}`}
+                        checked={studentsToRemove.includes(student.id)}
+                        onChange={() => toggleStudentToRemove(student.id)}
+                        className="checkbox-input"
+                      />
+                      <label htmlFor={`student-${student.id}`} className="checkbox-label">
+                        {student.id} - {student.name}
+                      </label>
+                    </div>
+                  ))
+                ) : (
+                  <p className="empty-state">
+                    No students in this room.
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="modal-footer">
+              <button 
+                className="footer-btn btn-secondary"
+                onClick={() => setShowRemoveModal(false)}
+              >
+                <span className="truncate">Cancel</span>
+              </button>
+              <button 
+                className={`footer-btn btn-danger ${studentsToRemove.length === 0 ? 'disabled' : ''}`}
+                onClick={handleRemoveStudents}
+                disabled={studentsToRemove.length === 0}
+              >
+                <span className="truncate">Remove Selected</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
