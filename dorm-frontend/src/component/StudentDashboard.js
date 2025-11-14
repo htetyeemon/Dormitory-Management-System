@@ -9,6 +9,7 @@ import {
     faScrewdriverWrench,
     faPhone, faEnvelope, faLocationDot,
     faTriangleExclamation, faBuilding,
+    faMarker,
 } from '@fortawesome/free-solid-svg-icons';
 
 const StudentDashboard = () => {
@@ -75,7 +76,7 @@ const StudentDashboard = () => {
         // Enhanced status determination logic
         if (latestActivity.status === 'APPROVED') {
             return {
-                status: latestActivity.type === 'CHECKIN' ? 'Active' : 'Inactive',
+                status: 'Approved',
                 lastActivity: latestActivity,
                 type: latestActivity.type
             };
@@ -122,9 +123,9 @@ const StudentDashboard = () => {
 
     const getStatusColor = (status) => {
         switch (status) {
-            case 'Active':
+            case 'Checked In':
                 return '#CD853F';
-            case 'Inactive':
+            case 'Checked Out':
                 return '#CD853F';
             case 'Pending Approval':
                 return '#CD853F';
@@ -137,16 +138,13 @@ const StudentDashboard = () => {
 
     const getStatusIcon = (status) => {
         switch (status) {
-            case 'Active':
-                return <FontAwesomeIcon icon={faCircleCheck} />;
-            case 'Inactive':
-                return <FontAwesomeIcon icon={faCircleXmark} />;
+            
             case 'Pending Approval':
                 return <FontAwesomeIcon icon={faHourglassStart} />;
             case 'Rejected':
                 return <FontAwesomeIcon icon={faCircleXmark} />;
             default:
-                return <FontAwesomeIcon icon={faCircleQuestion} />;
+                return <FontAwesomeIcon icon={faCircleCheck} />;
         }
     };
 
@@ -224,7 +222,7 @@ const StudentDashboard = () => {
                         </span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
-                                Check-in Status
+                               {checkInStatus.type ? `${checkInStatus.type} status` : 'Status'}
                             </p>
                             <p style={{
                                 color: '#000000',

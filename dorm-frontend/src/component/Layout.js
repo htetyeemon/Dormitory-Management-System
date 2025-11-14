@@ -255,7 +255,7 @@ const Layout = ({ children }) => {
                 padding: '1.5rem',
                 fontSize: '0.875rem',
             }}>
-                © 2024 Dormitory Management System. Version 1.0.0
+                © 2025 Dormitory Management System. Version 1.0.0
             </footer>
         </div>
     );
