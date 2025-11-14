@@ -74,8 +74,8 @@ const Layout = ({ children }) => {
                         style={navLinkStyle(isActiveLink(`/student/${id}/announcements`))}>
                         Announcements
                     </Link>
-                    <Link to={`/student/${id}/checkin`}
-                        style={navLinkStyle(isActiveLink(`/student/${id}/checkin`))}>
+                    <Link to={`/student/${id}/checkinout`}
+                        style={navLinkStyle(isActiveLink(`/student/${id}/checkinout`))}>
                         Check-in/Out
                     </Link>
                 </>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAnnouncements } from '../context/AnnouncementsContext';
 import { managerAPI } from '../service/api';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
@@ -17,6 +18,7 @@ import {
 
 const ManagerDashboard = () => {
   const { user } = useAuth();
+  const { announcementsUpdateTrigger } = useAnnouncements();
   const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,7 @@ const ManagerDashboard = () => {
     fetchDashboardData();
     fetchPendingCheckInsForDorm();
     fetchPendingComplaintsForDorm();
-  }, [managerId]);
+  }, [managerId, announcementsUpdateTrigger]); // Add announcementsUpdateTrigger as dependency
 
   const fetchDashboardData = async () => {
     try {

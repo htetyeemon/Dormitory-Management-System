@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCalendar, faCircleCheck, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
+import { faCalendar, faCircleCheck, faDoorOpen, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutPage = () => {
   const { user } = useAuth();
@@ -23,9 +23,17 @@ const CheckInOutPage = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [roomInfo, setRoomInfo] = useState(null);
+  const [existingRequests, setExistingRequests] = useState([]);
+  const [errors, setErrors] = useState({
+    duplicate: '',
+    date: '',
+    chronological: '',
+    general: ''
+  });
 
   useEffect(() => {
     fetchStudentData();
+    fetchExistingRequests();
   }, [studentId]);
 
   const fetchStudentData = async () => {
@@ -57,8 +65,86 @@ const CheckInOutPage = () => {
     }
   };
 
+  const fetchExistingRequests = async () => {
+    try {
+      const response = await studentAPI.getCheckInOutHistory(studentId);
+      if (response.data) {
+        setExistingRequests(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching existing requests:', err);
+    }
+  };
+
+  const checkForDuplicateRequest = (type, date) => {
+    return existingRequests.some(request => 
+      request.date === date && 
+      request.status === 'PENDING'
+    );
+  };
+
+  const getLatestRequestDate = () => {
+    if (existingRequests.length === 0) return null;
+    
+    // Sort requests by date in descending order and get the latest one
+    const sortedRequests = [...existingRequests].sort((a, b) => 
+      new Date(b.date) - new Date(a.date)
+    );
+    
+    return sortedRequests[0].date;
+  };
+
+  const validateChronologicalOrder = (date) => {
+    const latestRequestDate = getLatestRequestDate();
+    
+    if (!latestRequestDate) return { isValid: true, message: '' };
+    
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    const latestDate = new Date(latestRequestDate);
+    latestDate.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < latestDate) {
+      return { 
+        isValid: false, 
+        message: `Date cannot be earlier than your last submitted request (${latestRequestDate}). Please select ${latestRequestDate} or a later date.` 
+      };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
+  const validateDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const oneWeekFromNow = new Date();
+    oneWeekFromNow.setDate(today.getDate() + 7);
+    oneWeekFromNow.setHours(23, 59, 59, 999);
+    
+    const selectedDate = new Date(date);
+    selectedDate.setHours(0, 0, 0, 0);
+    
+    if (selectedDate < today) {
+      return { isValid: false, message: 'Date cannot be in the past. Please select today or a future date.' };
+    }
+    
+    if (selectedDate > oneWeekFromNow) {
+      return { isValid: false, message: 'Date cannot be more than one week in advance. Please select a date within the next 7 days.' };
+    }
+    
+    return { isValid: true, message: '' };
+  };
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
+    
+    // Clear errors when user starts typing
+    if (name === 'requestDate') {
+      setErrors(prev => ({ ...prev, date: '', chronological: '' }));
+    }
+    
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
@@ -68,13 +154,41 @@ const CheckInOutPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    // Clear previous errors
+    setErrors({ duplicate: '', date: '', chronological: '', general: '' });
+
+    // Validate confirmation
     if (!formData.confirmation) {
       alert('Please confirm that all information provided is accurate.');
       return;
     }
 
+    // Validate date
     if (!formData.requestDate) {
-      alert('Please select a date for your request.');
+      setErrors(prev => ({ ...prev, date: 'Please select a date for your request.' }));
+      return;
+    }
+
+    const dateValidation = validateDate(formData.requestDate);
+    if (!dateValidation.isValid) {
+      setErrors(prev => ({ ...prev, date: dateValidation.message }));
+      return;
+    }
+
+    // Validate chronological order
+    const chronologicalValidation = validateChronologicalOrder(formData.requestDate);
+    if (!chronologicalValidation.isValid) {
+      setErrors(prev => ({ ...prev, chronological: chronologicalValidation.message }));
+      return;
+    }
+
+    // Check for duplicate request (any type for the same date)
+    const backendType = formData.requestType === 'check-in' ? 'CHECKIN' : 'CHECKOUT';
+    if (checkForDuplicateRequest(backendType, formData.requestDate)) {
+      setErrors(prev => ({ 
+        ...prev, 
+        duplicate: `You already have a pending request for ${formData.requestDate}. Please wait for it to be processed or choose a different date.` 
+      }));
       return;
     }
 
@@ -83,7 +197,7 @@ const CheckInOutPage = () => {
     try {
       // Prepare request data according to backend expectations
       const requestData = {
-        type: formData.requestType.toUpperCase(), // Backend expects CHECKIN or CHECKOUT
+        type: backendType, // Backend expects CHECKIN or CHECKOUT
         date: formData.requestDate // Backend expects just the date
       };
 
@@ -100,13 +214,24 @@ const CheckInOutPage = () => {
         confirmation: false
       });
       
+      // Refresh existing requests to include the new one
+      await fetchExistingRequests();
+      
       // Optionally navigate to dashboard or history page
       // navigate(`/student/${studentId}/dashboard`);
       
     } catch (err) {
       console.error('Error submitting check-in/out request:', err);
-      console.error('Error details:', err.response?.data); // Log detailed error
-      alert('Failed to submit request. Please try again.');
+      console.error('Error details:', err.response?.data);
+      
+      let errorMessage = 'Failed to submit request. Please try again.';
+      if (err.response?.data) {
+        errorMessage = typeof err.response.data === 'string' 
+          ? err.response.data 
+          : 'Server error occurred. Please try again.';
+      }
+      
+      setErrors(prev => ({ ...prev, general: errorMessage }));
     } finally {
       setSubmitting(false);
     }
@@ -116,15 +241,48 @@ const CheckInOutPage = () => {
     navigate(`/student/${studentId}/dashboard`);
   };
 
-  // Get today's date in YYYY-MM-DD format for the date input min attribute
+  // Get today's date in YYYY-MM-DD format for the date input
   const getTodayDate = () => {
     return new Date().toISOString().split('T')[0];
+  };
+
+  // Get max date (one week from today)
+  const getMaxDate = () => {
+    const oneWeekFromNow = new Date();
+    oneWeekFromNow.setDate(oneWeekFromNow.getDate() + 7);
+    return oneWeekFromNow.toISOString().split('T')[0];
+  };
+
+  // Get min date based on latest existing request
+  const getMinDate = () => {
+    const latestRequestDate = getLatestRequestDate();
+    const today = getTodayDate();
+    
+    if (!latestRequestDate) return today;
+    
+    // Return the later date between today and the latest request date
+    return new Date(latestRequestDate) >= new Date(today) ? latestRequestDate : today;
   };
 
   const cardStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '0.75rem',
     border: '1px solid #e8c8b5ff'
+  };
+
+  const errorStyle = {
+    color: '#dc2626',
+    fontSize: '0.875rem',
+    marginTop: '0.5rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem'
+  };
+
+  const infoStyle = {
+    color: '#6b7280',
+    fontSize: '0.75rem',
+    marginTop: '0.5rem'
   };
 
   if (loading) {
@@ -146,6 +304,9 @@ const CheckInOutPage = () => {
       </div>
     );
   }
+
+  const latestRequestDate = getLatestRequestDate();
+  const minDate = getMinDate();
 
   return (
     <div style={{
@@ -175,9 +336,27 @@ const CheckInOutPage = () => {
             fontSize: '1rem',
             fontWeight: 400,
           }}>
-            Please fill out the form below to submit your request.
+            Please fill out the form below to submit your request. {latestRequestDate && `Your next request must be on or after ${latestRequestDate}.`}
           </p>
         </header>
+
+        {/* Error Alert */}
+        {errors.general && (
+          <div style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#dc2626',
+            padding: '1rem',
+            borderRadius: '0.5rem',
+            marginBottom: '1.5rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem'
+          }}>
+            <FontAwesomeIcon icon={faExclamationTriangle} />
+            <span>{errors.general}</span>
+          </div>
+        )}
 
         {/* Form Section */}
         <div style={{
@@ -404,12 +583,13 @@ const CheckInOutPage = () => {
                       name="requestDate"
                       value={formData.requestDate}
                       onChange={handleInputChange}
-                      min={getTodayDate()}
+                      min={minDate}
+                      max={getMaxDate()}
                       required
                       style={{
                         width: '100%',
                         borderRadius: '0.375rem',
-                        border: '1px solid #d1d5db',
+                        border: (errors.date || errors.chronological) ? '1px solid #dc2626' : '1px solid #d1d5db',
                         backgroundColor: 'white',
                         padding: '0.625rem 0.625rem 0.625rem 2.5rem',
                         fontSize: '0.875rem',
@@ -417,6 +597,39 @@ const CheckInOutPage = () => {
                       }}
                     />
                   </div>
+                  {errors.date && (
+                    <div style={errorStyle}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} />
+                      <span>{errors.date}</span>
+                    </div>
+                  )}
+                  {errors.chronological && (
+                    <div style={errorStyle}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} />
+                      <span>{errors.chronological}</span>
+                    </div>
+                  )}
+                  {errors.duplicate && (
+                    <div style={errorStyle}>
+                      <FontAwesomeIcon icon={faExclamationTriangle} />
+                      <span>{errors.duplicate}</span>
+                    </div>
+                  )}
+                  <div style={infoStyle}>
+                    {latestRequestDate 
+                      ? `Select a date between ${getMaxDate()} and ${minDate}`
+                      : `Select a date between today and ${getMaxDate()}`
+                    }
+                  </div>
+                  {latestRequestDate && (
+                    <div style={{
+                      ...infoStyle,
+                      color: '#7d2923',
+                      fontStyle: 'italic'
+                    }}>
+                      Your last submitted request was for {latestRequestDate}
+                    </div>
+                  )}
                 </div>
               </div>
 

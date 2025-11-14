@@ -1,7 +1,7 @@
 package com.project.dormitory.service;
 
 import com.project.dormitory.model.*;
-import com.project.dormitory.model.DashboardResponse;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class DashboardService {
         this.announcementService = announcementService;
     }
 
-    public DashboardResponse getStudentDashboard(Long studentId) {
+    public DashboardResponse getStudentDashboard(long studentId) {
         Student student = studentService.getStudentById(studentId);
         if (student == null) {
             return null;
@@ -30,7 +30,12 @@ public class DashboardService {
 
         Room room = student.getRoom();
         List<ComplaintRepair> recentRequests = complaintRepairService.getRecentRequestsByStudentId(studentId);
-        List<Announcement> recentAnnouncements = announcementService.getRecentAnnouncements();
+        
+        // Get announcements for student's dormitory
+        List<Announcement> recentAnnouncements = List.of();
+        if (room != null && room.getDormitory() != null) {
+            recentAnnouncements = announcementService.getRecentAnnouncementsByDormitory(room.getDormitory().getId());
+        }
 
         return new DashboardResponse(room, recentRequests, recentAnnouncements);
     }

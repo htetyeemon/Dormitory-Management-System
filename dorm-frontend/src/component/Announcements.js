@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAnnouncements } from '../context/AnnouncementsContext';
 import { studentAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,6 +8,7 @@ import { faSearch, faSort, faBullhorn, faCalendarAlt } from '@fortawesome/free-s
 
 const Announcements = () => {
   const { user } = useAuth();
+  const { announcementsUpdateTrigger } = useAnnouncements();
   const { studentId } = useParams();
   const [announcements, setAnnouncements] = useState([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
@@ -16,11 +18,12 @@ const Announcements = () => {
   const [sortOrder, setSortOrder] = useState('desc');
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
+
   const announcementsPerPage = 6;
 
   useEffect(() => {
     fetchAnnouncements();
-  }, [studentId]);
+  }, [studentId, announcementsUpdateTrigger]);
 
   useEffect(() => {
     filterAndSortAnnouncements();
@@ -33,7 +36,7 @@ const Announcements = () => {
   const fetchAnnouncements = async () => {
     try {
       setLoading(true);
-      const response = await studentAPI.getAllAnnouncements();
+      const response = await studentAPI.getAllAnnouncements(studentId || user.id);
       setAnnouncements(response.data);
     } catch (err) {
       console.error('Error fetching announcements:', err);
@@ -122,12 +125,12 @@ const Announcements = () => {
 
   // Calculate pagination variables
   const totalPages = Math.ceil(filteredAnnouncements.length / announcementsPerPage);
-  
+
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
@@ -155,7 +158,6 @@ const Announcements = () => {
         pages.push(totalPages);
       }
     }
-    
     return pages;
   };
 
@@ -211,7 +213,7 @@ const Announcements = () => {
               fontWeight: 400,
               lineHeight: 'normal',
             }}>
-              Stay updated with the latest news and important notices from the dormitory management.
+              Stay updated with the latest news and important notices from your dormitory management.
             </p>
           </div>
         </div>
@@ -236,7 +238,7 @@ const Announcements = () => {
               left: '12px',
               top: '50%',
               transform: 'translateY(-50%)',
-              color: '#7d2923',
+              color: '#CD853F',
               fontSize: '16px'
             }}>
               <FontAwesomeIcon icon={faSearch} />
@@ -346,7 +348,7 @@ const Announcements = () => {
                     gap: '1rem',
                   }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <span style={{ color: '#7d2923', fontSize: '1.25rem' }}>
+                      <span style={{ color: '#CD853F', fontSize: '1.25rem' }}>
                         <FontAwesomeIcon icon={faBullhorn} />
                       </span>
                       <h3 style={{
@@ -359,9 +361,7 @@ const Announcements = () => {
                       </h3>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ color: '#7d2923', fontSize: '0.875rem' }}>
-                        <FontAwesomeIcon icon={faCalendarAlt} />
-                      </span>
+
                       <p style={{
                         color: '#928d8dff',
                         fontSize: '0.875rem',
@@ -373,6 +373,7 @@ const Announcements = () => {
                       </p>
                     </div>
                   </div>
+
                   <div style={{
                     color: '#191919ff',
                     fontSize: '1rem',

@@ -21,11 +21,11 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor — only rejects, no redirect
+// Response interceptor --- only rejects, no redirect
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Do NOT redirect here — just reject to let AuthContext handle it
+    // Do NOT redirect here --- just reject to let AuthContext handle it
     return Promise.reject(error);
   }
 );
@@ -42,16 +42,21 @@ export const studentAPI = {
   getRoomInfo: (studentId) => api.get(`/student/${studentId}/room`),
   createServiceRequest: (studentId, requestData) =>
     api.post(`/student/${studentId}/service/request`, requestData),
-  getServiceHistory: (studentId) => api.get(`/student/${studentId}/service/history`),
+  getServiceHistory: (studentId) =>
+    api.get(`/student/${studentId}/service/history`),
   submitCheckInOut: (studentId, requestData) =>
     api.post(`/student/${studentId}/checkinout`, requestData),
-  getCheckInOutHistory: (studentId) => api.get(`/student/${studentId}/checkinout/history`),
-  getAllAnnouncements: () => api.get('/student/announcements'),
+  getCheckInOutHistory: (studentId) =>
+    api.get(`/student/${studentId}/checkinout/history`),
+  getAllAnnouncements: (studentId) => api.get(`/student/${studentId}/announcements`),
+  getAllAnnouncementsByAsc: (studentId) => api.get(`/student/${studentId}/announcements/dateAsc`),
+  getAllAnnouncementsByDesc: (studentId) => api.get(`/student/${studentId}/announcements/dateDesc`),
 };
 
 // Manager APIs
 export const managerAPI = {
-  getDashboard: (managerId) => api.get(`/manager/${managerId}/dashboard`),
+  getDashboard: (managerId) =>
+    api.get(`/manager/${managerId}/dashboard`),
   getAllRooms: (managerId) => api.get(`/manager/${managerId}/rooms`),
   assignRoom: (managerId, assignmentData) =>
     api.post(`/manager/${managerId}/rooms/assign`, assignmentData),
@@ -70,11 +75,14 @@ export const managerAPI = {
     api.post(`/manager/${managerId}/checkinout/${requestId}/approve`),
   rejectCheckInOutRequest: (managerId, requestId) =>
     api.post(`/manager/${managerId}/checkinout/${requestId}/reject`),
-  getAllComplaints: (managerId) => api.get(`/manager/${managerId}/complaints`),
-  getPendingComplaints: (managerId) => api.get(`/manager/${managerId}/complaints/pending`),
+  getAllComplaints: (managerId) =>
+    api.get(`/manager/${managerId}/complaints`),
+  getPendingComplaints: (managerId) =>
+    api.get(`/manager/${managerId}/complaints/pending`),
   updateComplaintStatus: (managerId, complaintId, status) =>
     api.put(`/manager/${managerId}/complaints/${complaintId}/${status}`),
-  getAllAnnouncements: (managerId) => api.get(`/manager/${managerId}/announcements`),
+  getAllAnnouncements: (managerId) =>
+    api.get(`/manager/${managerId}/announcements`),
   searchAnnouncements: (managerId, keyword) =>
     api.get(`/manager/${managerId}/announcements/search?keyword=${keyword}`),
   createAnnouncement: (managerId, announcementData) =>

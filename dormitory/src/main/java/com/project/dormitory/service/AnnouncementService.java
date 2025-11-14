@@ -2,6 +2,7 @@ package com.project.dormitory.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,17 @@ public class AnnouncementService {
 
     public List<Announcement> getAllAnnouncementsByDateDesc(){
         return announcementRepository.findAllByOrderByDateTimeDesc();
+    }
+
+    public List<Announcement> getAllAnnouncementsByDormitory(Long dormId) {
+        return announcementRepository.findByManagerDormitoryIdOrderByDateTimeDesc(dormId);
+    }
+    
+    public List<Announcement> getRecentAnnouncementsByDormitory(Long dormId) {
+        List<Announcement> allAnnouncements = getAllAnnouncementsByDormitory(dormId);
+        return allAnnouncements.stream()
+                .limit(5)
+                .collect(Collectors.toList());
     }
 
 }

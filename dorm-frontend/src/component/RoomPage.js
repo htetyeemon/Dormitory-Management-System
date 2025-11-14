@@ -12,28 +12,35 @@ import {
     faLocationDot,
     faCalendarCheck,
     faRulerCombined,
-    faClipboardList
+    faClipboardList,
+    faUserSlash // New icon for no roommate
 } from '@fortawesome/free-solid-svg-icons';
 
 const RoomPage = () => {
   const { user } = useAuth();
   const [roomData, setRoomData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const { studentId } = useParams();
 
   useEffect(() => {
     const fetchRoomInfo = async () => {
       try {
-        const res = await studentAPI.getRoomInfo(user.id);
+        setError(null);
+        // Use the actual studentId from URL or fallback to user.id
+        const actualStudentId = studentId || user.id;
+        const res = await studentAPI.getRoomInfo(actualStudentId);
+        console.log("Room API Response:", res.data); // Debug log
         setRoomData(res.data);
       } catch (err) {
         console.error("Error loading room info:", err);
+        setError("Failed to load room information");
       } finally {
         setLoading(false);
       }
     };
     fetchRoomInfo();
-  }, [studentId]);
+  }, [studentId, user.id]);
 
   // Consistent card style from StudentDashboard
   const cardStyle = {
@@ -58,12 +65,25 @@ const RoomPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <div style={{ padding: '2rem', textAlign: 'center' }}>
+        <div style={{ color: '#d32f2f', fontSize: '1.125rem' }}>
+          {error}
+        </div>
+      </div>
+    );
+  }
+
   const { room, roommate } = roomData || {};
+
+  // Check if roommate exists and has valid data
+  const hasRoommate = roommate && roommate.id && roommate.id !== user.id;
 
   return (
     <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header Section - Exactly like StudentDashboard */}
+        {/* Header Section */}
         <div style={{ marginBottom: '2rem' }}>
           <h1 style={{
             color: '#000000',
@@ -80,18 +100,17 @@ const RoomPage = () => {
             fontSize: '1rem',
             fontWeight: 400,
           }}>
-            Room {room?.roomNum || "205B"} - Block {room?.block || "A"}, Floor {room?.floor || "2"}
+            {room ? `Room ${room.roomNum} - Block ${room.block}, Floor ${room.floor}` : "No room assigned"}
           </p>
         </div>
 
-        {/* Main Content Grid - Consistent 2-column layout */}
+        {/* Main Content Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: '1fr',
           gap: '1.5rem',
           alignItems: 'stretch',
         }}>
-          {/* For larger screens, use 2 columns */}
           <style>
             {`
               @media (min-width: 1024px) {
@@ -148,7 +167,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      {room?.roomNum || '205B'}
+                      {room?.roomNum || 'Not assigned'}
                     </span>
                   </div>
                   <div style={{
@@ -170,7 +189,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      Block {room?.block || 'A'}
+                      {room?.block ? `Block ${room.block}` : 'Not assigned'}
                     </span>
                   </div>
                   <div style={{
@@ -192,7 +211,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      {room?.floor || '2nd Floor'}
+                      {room?.floor ? `${room.floor}` : 'Not assigned'}
                     </span>
                   </div>
                 </div>
@@ -213,60 +232,104 @@ const RoomPage = () => {
                   flexDirection: 'column',
                   gap: '1.5rem',
                 }}>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '1rem',
-                  }}>
-                    <span style={{ color: '#CD853F', fontSize: '1.5rem' }}>
-                      <FontAwesomeIcon icon={faUser} />
-                    </span>
+                  {hasRoommate ? (
                     <div style={{
                       display: 'flex',
-                      flexDirection: 'column',
-                      width: '100%',
+                      alignItems: 'flex-start',
+                      gap: '1rem',
                     }}>
-                      <p style={{
-                        color: '#000000',
-                        fontSize: '1rem',
-                        fontWeight: 700,
-                        margin: '0 0 0.5rem 0',
+                      <span style={{ color: '#CD853F', fontSize: '1.5rem' }}>
+                        <FontAwesomeIcon icon={faUser} />
+                      </span>
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '100%',
                       }}>
-                        {roommate?.name || 'Sarah Johnson'}
-                      </p>
-                      <p style={{
-                        color: '#928d8dff',
-                        fontSize: '0.875rem',
-                        margin: '0 0 0.5rem 0',
-                      }}>
-                        {roommate?.major || 'Software Engineering'}
-                      </p>
-                      <a 
-                        style={{
-                          color: '#806e6eff',
+                        <p style={{
+                          color: '#000000',
+                          fontSize: '1rem',
+                          fontWeight: 700,
+                          margin: '0 0 0.5rem 0',
+                        }}>
+                          {roommate.name}
+                        </p>
+                        <p style={{
+                          color: '#928d8dff',
                           fontSize: '0.875rem',
-                          textDecoration: 'none',
-                          fontWeight: 500,
-                        }}
-                        href={`mailto:${roommate?.email || 'sarah.johnson@mfu.edu'}`}
-                        onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
-                        onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
-                      >
-                        {roommate?.email || 'sarah.johnson@mfu.edu'}
-                      </a>
+                          margin: '0 0 0.5rem 0',
+                        }}>
+                          {roommate.major || 'Major not specified'}
+                        </p>
+                        {roommate.email && (
+                          <a 
+                            style={{
+                              color: '#806e6eff',
+                              fontSize: '0.875rem',
+                              textDecoration: 'none',
+                              fontWeight: 500,
+                            }}
+                            href={`mailto:${roommate.email}`}
+                            onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
+                            onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
+                          >
+                            {roommate.email}
+                          </a>
+                        )}
+                        {roommate.phoneNum && (
+                          <p style={{
+                            color: '#928d8dff',
+                            fontSize: '0.875rem',
+                            margin: '0.5rem 0 0 0',
+                          }}>
+                            Phone: {roommate.phoneNum}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '1rem',
+                      padding: '1rem',
+                      backgroundColor: '#f8f9fa',
+                      borderRadius: '0.5rem',
+                      border: '1px dashed #dee2e6',
+                    }}>
+                      <span style={{ color: '#6c757d', fontSize: '1.5rem' }}>
+                        <FontAwesomeIcon icon={faUserSlash} />
+                      </span>
+                      <div>
+                        <p style={{
+                          color: '#6c757d',
+                          fontSize: '1rem',
+                          fontWeight: 500,
+                          margin: 0,
+                        }}>
+                          No roommate assigned
+                        </p>
+                        <p style={{
+                          color: '#868e96',
+                          fontSize: '0.875rem',
+                          margin: '0.25rem 0 0 0',
+                        }}>
+                          You currently don't have a roommate in this room.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* Right Column */}
+            {/* Right Column - Rest of your existing code remains the same */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '1.5rem',
             }}>
-              {/* Contact Information Card - Consistent with StudentDashboard */}
+              {/* Contact Information Card */}
               <div style={cardStyle}>
                 <h2 style={{
                   color: '#000000',
@@ -335,7 +398,7 @@ const RoomPage = () => {
                 </div>
               </div>
 
-              {/* Room Status Card - Adjusted to match Roommates height */}
+              {/* Room Status Card */}
               <div style={{
                 ...cardStyle,
                 display: 'flex',
@@ -376,7 +439,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      {room?.occupancy || '2'} / 2
+                      {room?.occupancy || '0'} / 2
                     </span>
                   </div>
                   <div style={{
@@ -398,7 +461,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      {room?.lastInspect || 'Jan 5, 2025'}
+                      {room?.lastInspect || 'Not available'}
                     </span>
                   </div>
                   <div style={{
@@ -420,7 +483,7 @@ const RoomPage = () => {
                       fontSize: '1rem',
                       fontWeight: 700,
                     }}>
-                      {room?.duration+" Year" || '1 Year'}
+                      {room?.duration ? `${room.duration} Year` : 'Not specified'}
                     </span>
                   </div>
                 </div>

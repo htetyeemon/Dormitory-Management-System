@@ -54,13 +54,13 @@ const ComplaintsPage = () => {
     let complaintType = 'N/A';
 
     if (complaint) {
-      studentName = complaint.studentName || complaint.student?.studentName || 'N/A';
-      studentId = complaint.studentId || complaint.student?.studentId || 'N/A';
+      studentName = complaint.studentName || complaint.student?.studentName || complaint.student?.name || 'N/A';
+      studentId = complaint.studentId || complaint.student?.studentId || complaint.student?.id || 'N/A';
       if (complaint.roomNumber || complaint.student?.room?.roomNumber) {
         roomNumber = complaint.roomNumber || complaint.student.room.roomNumber;
       }
-      priorityLevel = complaint.priorityLvl|| complaint.priorityLevel || 'N/A';
-      complaintType = complaint.type || complaint.complaintType || 'N/A';
+      priorityLevel = complaint.priorityLvl || complaint.priorityLevel || complaint.priorityLv1 || 'N/A';
+      complaintType = complaint.type || complaint.complaintType || complaint.serviceType || 'N/A';
     }
 
     return { studentName, studentId, roomNumber, priorityLevel, complaintType };
@@ -72,23 +72,27 @@ const ComplaintsPage = () => {
     if (searchTerm) {
       filtered = filtered.filter(complaint => {
         const { studentName, studentId, roomNumber, priorityLevel, complaintType } = getComplaintInfo(complaint);
+        const searchLower = searchTerm.toLowerCase();
+        
         return (
-          complaint.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          complaint.description?.toLowerCase().includes(searchLower) ||
+          studentName?.toLowerCase().includes(searchLower) ||
           studentId?.toString().includes(searchTerm) ||
           roomNumber?.toString().includes(searchTerm) ||
           complaint.id?.toString().includes(searchTerm) ||
-          priorityLevel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          complaintType?.toLowerCase().includes(searchTerm.toLowerCase())
+          priorityLevel?.toLowerCase().includes(searchLower) ||
+          complaintType?.toLowerCase().includes(searchLower) ||
+          complaint.status?.toLowerCase().includes(searchLower)
         );
       });
     }
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(complaint => {
-        if (statusFilter === 'pending') return complaint.status === 'PENDING';
-        if (statusFilter === 'in_progress') return complaint.status === 'IN PROGRESS';
-        if (statusFilter === 'resolved') return complaint.status === 'RESOLVED';
+        const normalizedStatus = (complaint.status || 'PENDING').toUpperCase();
+        if (statusFilter === 'pending') return normalizedStatus === 'PENDING';
+        if (statusFilter === 'in_progress') return normalizedStatus === 'IN PROGRESS';
+        if (statusFilter === 'resolved') return normalizedStatus === 'RESOLVED';
         return true;
       });
     }
@@ -186,14 +190,16 @@ const ComplaintsPage = () => {
         borderColor: '#b3d7ff'
       },
       'RESOLVED': { 
-        label:'RESOLVED', 
+        label: 'RESOLVED', 
         backgroundColor: '#d4edda',
         color: '#155724',
         borderColor: '#c3e6cb'
       }
     };
 
-    const statusInfo = statusMap[status] || statusMap['PENDING'];
+    const normalizedStatus = (status || 'PENDING').toUpperCase();
+    const statusInfo = statusMap[normalizedStatus] || statusMap['PENDING'];
+    
     return (
       <span 
         className="status-badge"
@@ -217,19 +223,19 @@ const ComplaintsPage = () => {
 
   const getPriorityBadge = (priority) => {
     const priorityMap = {
-      'high': { 
+      'HIGH': { 
         label: 'HIGH', 
         backgroundColor: '#fee2e2',
         color: '#dc2626',
         borderColor: '#fecaca'
       },
-      'medium': { 
+      'MEDIUM': { 
         label: 'MEDIUM', 
         backgroundColor: '#fef3c7',
         color: '#d97706',
         borderColor: '#fde68a'
       },
-      'low': { 
+      'LOW': { 
         label: 'LOW', 
         backgroundColor: '#d1fae5',
         color: '#059669',
@@ -237,7 +243,8 @@ const ComplaintsPage = () => {
       }
     };
 
-    const priorityInfo = priorityMap[priority] || { 
+    const normalizedPriority = (priority || 'LOW').toUpperCase();
+    const priorityInfo = priorityMap[normalizedPriority] || { 
       label: priority, 
       backgroundColor: '#f3f4f6',
       color: '#6b7280',
@@ -332,27 +339,213 @@ const ComplaintsPage = () => {
     backgroundColor: '#fafafa'
   };
 
+  const renderActionButtons = (complaint, e = null) => {
+    if (e) e.stopPropagation();
+    
+    const normalizedStatus = (complaint.status || 'PENDING').toUpperCase();
+    
+    return (
+      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+        {normalizedStatus === 'PENDING' && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleApprove(complaint.id);
+              }}
+              disabled={updating === complaint.id}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#228B22',
+                color: 'white',
+                border: 'none',
+                cursor: updating === complaint.id ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 2px 0 rgba(59, 130, 246, 0.2)',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: updating === complaint.id ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (updating !== complaint.id) {
+                  e.target.style.background = '#1C711C';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px 0 rgba(59, 130, 246, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (updating !== complaint.id) {
+                  e.target.style.background = '#228B22';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 1px 2px 0 rgba(59, 130, 246, 0.2)';
+                }
+              }}
+            >
+              {updating === complaint.id ? 'Updating...' : 'Approve'}
+            </button>
+            <button 
+              disabled 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#d1d5db',
+                color: '#6b7280',
+                border: 'none',
+                cursor: 'not-allowed',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: 0.6
+              }}
+            >
+              Resolve
+            </button>
+          </>
+        )}
+
+        {normalizedStatus === 'IN PROGRESS' && (
+          <>
+            <button 
+              disabled 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#d1d5db',
+                color: '#6b7280',
+                border: 'none',
+                cursor: 'not-allowed',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: 0.6
+              }}
+            >
+              Approved
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleResolve(complaint.id);
+              }}
+              disabled={updating === complaint.id}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#d8392eff',
+                color: 'white',
+                border: 'none',
+                cursor: updating === complaint.id ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 1px 2px 0 rgba(59, 130, 246, 0.2)',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: updating === complaint.id ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (updating !== complaint.id) {
+                  e.target.style.background = '#b02a23';
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 8px 0 rgba(239, 68, 68, 0.3)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (updating !== complaint.id) {
+                  e.target.style.background = '#d8392eff';
+                  e.target.style.transform = 'translateY(0)';
+                  e.target.style.boxShadow = '0 1px 2px 0 rgba(59, 130, 246, 0.2)';
+                }
+              }}
+            >
+              {updating === complaint.id ? 'Updating...' : 'Resolve'}
+            </button>
+          </>
+        )}
+
+        {normalizedStatus === 'RESOLVED' && (
+          <>
+            <button 
+              disabled 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#d1d5db',
+                color: '#6b7280',
+                border: 'none',
+                cursor: 'not-allowed',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: 0.6
+              }}
+            >
+              Approved
+            </button>
+            <button 
+              disabled 
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.60rem',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                backgroundColor: '#d1d5db',
+                color: '#6b7280',
+                border: 'none',
+                cursor: 'not-allowed',
+                fontFamily: 'inherit',
+                minWidth: '100px',
+                height: '2.25rem',
+                opacity: 0.6
+              }}
+            >
+              Resolved
+            </button>
+          </>
+        )}
+      </div>
+    );
+  };
+
   // Filter and pagination calculations
   const filteredComplaintsAll = complaints.filter(complaint => {
     const { studentName, studentId, roomNumber, priorityLevel, complaintType } = getComplaintInfo(complaint);
+    const searchLower = searchTerm.toLowerCase();
     
     if (searchTerm) {
       const matchesSearch = 
-        complaint.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        complaint.description?.toLowerCase().includes(searchLower) ||
+        studentName?.toLowerCase().includes(searchLower) ||
         studentId?.toString().includes(searchTerm) ||
         roomNumber?.toString().includes(searchTerm) ||
         complaint.id?.toString().includes(searchTerm) ||
-        priorityLevel?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        complaintType?.toLowerCase().includes(searchTerm.toLowerCase());
+        priorityLevel?.toLowerCase().includes(searchLower) ||
+        complaintType?.toLowerCase().includes(searchLower) ||
+        complaint.status?.toLowerCase().includes(searchLower);
       
       if (!matchesSearch) return false;
     }
 
     if (statusFilter !== 'all') {
-      if (statusFilter === 'pending' && complaint.status !== 'PENDING') return false;
-      if (statusFilter === 'in_progress' && complaint.status !== 'IN PROGRESS') return false;
-      if (statusFilter === 'resolved' && complaint.status !== 'RESOLVED') return false;
+      const normalizedStatus = (complaint.status || 'PENDING').toUpperCase();
+      if (statusFilter === 'pending' && normalizedStatus !== 'PENDING') return false;
+      if (statusFilter === 'in_progress' && normalizedStatus !== 'IN PROGRESS') return false;
+      if (statusFilter === 'resolved' && normalizedStatus !== 'RESOLVED') return false;
     }
 
     return true;
@@ -406,185 +599,6 @@ const ComplaintsPage = () => {
     { id: 126, description: "Lost keycard and cannot access room", status: "RESOLVED", priorityLvl: "URGENT", type: "SECURITY", student: { studentId: 1026, studentName: "Rachel Zane", room: { roomNumber: "412C" } } },
     { id: 127, description: "Desk drawer stuck and won't open properly", status: "PENDING", priorityLvl: "LOW", type: "FURNITURE", student: { studentId: 1027, studentName: "Alex Kim", room: { roomNumber: "208D" } } }
   ];
-
-  const renderActionButtons = (complaint, e = null) => {
-    if (e) e.stopPropagation();
-    
-    return (
-      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-        {complaint.status === 'PENDING' && (
-          <>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleApprove(complaint.id);
-              }}
-              disabled={updating === complaint.id}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#228B22',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 2px 0 rgba(59, 130, 246, 0.2)',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-              }}
-              onMouseEnter={(e) => {
-                if (updating !== complaint.id) {
-                  e.target.style.background = '#1C711C';
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 8px 0 rgba(59, 130, 246, 0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (updating !== complaint.id) {
-                  e.target.style.background = '#228B22';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 1px 2px 0 rgba(59, 130, 246, 0.2)';
-                }
-              }}
-            >
-              {updating === complaint.id ? 'Updating...' : 'Approve'}
-            </button>
-            <button 
-              disabled 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#d1d5db',
-                color: '#6b7280',
-                border: 'none',
-                cursor: 'not-allowed',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-                opacity: 0.6
-              }}
-            >
-              Resolve
-            </button>
-          </>
-        )}
-
-        {complaint.status === 'IN PROGRESS' && (
-          <>
-            <button 
-              disabled 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#d1d5db',
-                color: '#6b7280',
-                border: 'none',
-                cursor: 'not-allowed',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-                opacity: 0.6
-              }}
-            >
-              Approved
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleResolve(complaint.id);
-              }}
-              disabled={updating === complaint.id}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#d8392eff',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: '0 1px 2px 0 rgba(59, 130, 246, 0.2)',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-              }}
-              onMouseEnter={(e) => {
-                if (updating !== complaint.id) {
-                  e.target.style.background = '#b02a23';
-                  e.target.style.transform = 'translateY(-1px)';
-                  e.target.style.boxShadow = '0 4px 8px 0 rgba(239, 68, 68, 0.3)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (updating !== complaint.id) {
-                  e.target.style.background = '#d8392eff';
-                  e.target.style.transform = 'translateY(0)';
-                  e.target.style.boxShadow = '0 1px 2px 0 rgba(59, 130, 246, 0.2)';
-                }
-              }}
-            >
-              {updating === complaint.id ? 'Updating...' : 'Resolve'}
-            </button>
-          </>
-        )}
-
-        {complaint.status === 'RESOLVED' && (
-          <>
-            <button 
-              disabled 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#d1d5db',
-                color: '#6b7280',
-                border: 'none',
-                cursor: 'not-allowed',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-                opacity: 0.6
-              }}
-            >
-              Approved
-            </button>
-            <button 
-              disabled 
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.60rem',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                backgroundColor: '#d1d5db',
-                color: '#6b7280',
-                border: 'none',
-                cursor: 'not-allowed',
-                fontFamily: 'inherit',
-                minWidth: '100px',
-                height: '2.25rem',
-                opacity: 0.6
-              }}
-            >
-              Resolved
-            </button>
-          </>
-        )}
-      </div>
-    );
-  };
 
   if (loading) {
     return (
@@ -877,7 +891,7 @@ const ComplaintsPage = () => {
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                     >
-                      Read More ?
+                      Read More ↓
                     </button>
                   )}
                 </div>
@@ -1154,12 +1168,12 @@ const ComplaintsPage = () => {
                         {expandedViewModal ? (
                           <>
                             <span>Show Less</span>
-                            <span>?</span>
+                            <span>↑</span>
                           </>
                         ) : (
                           <>
                             <span>Read More</span>
-                            <span>?</span>
+                            <span>↓</span>
                           </>
                         )}
                       </button>

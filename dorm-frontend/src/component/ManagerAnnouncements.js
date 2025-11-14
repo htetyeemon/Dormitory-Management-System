@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAnnouncements } from '../context/AnnouncementsContext';
 import { managerAPI } from '../service/api';
 import { useParams, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -7,6 +8,7 @@ import { faBullhorn, faSquarePlus, faSearch, faCalendarDays, faSort, faTimes } f
 
 const ManagerAnnouncements = () => {
   const { user } = useAuth();
+  const { refreshAnnouncements } = useAnnouncements();
   const { managerId } = useParams();
   const location = useLocation();
   
@@ -32,10 +34,8 @@ const ManagerAnnouncements = () => {
   useEffect(() => {
     fetchAnnouncements();
     
-    // Check if we should open the create modal automatically
     if (location.state?.openCreateModal) {
       handleCreate();
-      // Clear the state to prevent reopening on refresh
       window.history.replaceState({}, document.title);
     }
   }, [managerId, location.state]);
@@ -90,6 +90,8 @@ const ManagerAnnouncements = () => {
         deleteConfirm.id
       );
       setAnnouncements(announcements.filter(a => a.id !== deleteConfirm.id));
+      // Trigger global refresh for all components
+      refreshAnnouncements();
       setDeleteConfirm(null);
     } catch (err) {
       setError('Failed to delete announcement');
@@ -100,7 +102,6 @@ const ManagerAnnouncements = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate form data - trim whitespace and check if empty
     const trimmedTitle = formData.title.trim();
     const trimmedDescription = formData.description.trim();
     
@@ -123,6 +124,8 @@ const ManagerAnnouncements = () => {
         setAnnouncements(announcements.map(a => 
           a.id === editingAnnouncement.id ? response.data : a
         ));
+        // Trigger global refresh
+        refreshAnnouncements();
       } else {
         const response = await managerAPI.createAnnouncement(
           managerId || user.id,
@@ -133,10 +136,12 @@ const ManagerAnnouncements = () => {
           }
         );
         setAnnouncements([response.data, ...announcements]);
+        // Trigger global refresh
+        refreshAnnouncements();
       }
       setShowModal(false);
       setFormData({ title: '', description: '' });
-      setError(null); // Clear any previous errors
+      setError(null);
     } catch (err) {
       setError(`Failed to ${editingAnnouncement ? 'update' : 'create'} announcement`);
       console.error('Error saving announcement:', err);
@@ -268,7 +273,6 @@ const ManagerAnnouncements = () => {
     return pages;
   };
 
-  // Card style matching student page
   const cardStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '0.75rem',
@@ -277,7 +281,6 @@ const ManagerAnnouncements = () => {
     boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
   };
 
-  // Modal styles
   const modalBackdropStyle = {
     position: 'fixed',
     top: 0,
@@ -329,7 +332,6 @@ const ManagerAnnouncements = () => {
     backgroundColor: '#fafafa'
   };
 
-  // Check if form is valid (both fields filled and not just whitespace)
   const isFormValid = formData.title.trim() && formData.description.trim();
 
   if (loading) {
@@ -412,7 +414,6 @@ const ManagerAnnouncements = () => {
               </p>
             </div>
             
-            {/* Create Button - Maintaining original style */}
             <button 
               onClick={handleCreate}
               style={{
@@ -622,7 +623,6 @@ const ManagerAnnouncements = () => {
                       gap: '1rem'
                     }}>
                       
-                      {/* Action Buttons - Maintaining original styles */}
                       <div style={{ 
                         display: 'flex', 
                         alignItems: 'center', 
@@ -768,7 +768,6 @@ const ManagerAnnouncements = () => {
               fontSize: '0.875rem',
               fontWeight: 500,
             }}>
-              {/* Previous Button */}
               <button
                 onClick={handlePrevPage}
                 disabled={currentPage === 1}
@@ -799,7 +798,6 @@ const ManagerAnnouncements = () => {
                 ←
               </button>
 
-              {/* Page Numbers */}
               {getPageNumbers().map((page, index) => (
                 <button
                   key={index}
@@ -833,7 +831,6 @@ const ManagerAnnouncements = () => {
                 </button>
               ))}
 
-              {/* Next Button */}
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}

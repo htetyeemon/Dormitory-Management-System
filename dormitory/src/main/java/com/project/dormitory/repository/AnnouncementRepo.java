@@ -10,6 +10,8 @@ import com.project.dormitory.model.Announcement;
 @Repository
 public interface AnnouncementRepo extends JpaRepository<Announcement,Long>{
 
+    List<Announcement> findByManagerDormitoryIdOrderByDateTimeDesc(Long dormId);
+
     List<Announcement> findTop5ByOrderByDateTimeDesc();
 
     /**

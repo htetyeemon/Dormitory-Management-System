@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useAnnouncements } from '../context/AnnouncementsContext';
 import { studentAPI } from '../service/api';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faDoorOpen,
@@ -14,17 +15,19 @@ import {
 
 const StudentDashboard = () => {
     const { user } = useAuth();
+    const { announcementsUpdateTrigger } = useAnnouncements();
     const [dashboardData, setDashboardData] = useState(null);
     const [checkInOutHistory, setCheckInOutHistory] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { studentId } = useParams();
     const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchDashboardData();
         fetchCheckInOutHistory();
-    }, [studentId]);
+    }, [studentId, announcementsUpdateTrigger]); // Add announcementsUpdateTrigger as dependency
 
     // Add this useEffect to refresh data periodically for real-time updates
     useEffect(() => {
@@ -58,6 +61,19 @@ const StudentDashboard = () => {
         } finally {
             setLoading(false);
         }
+    };
+
+    // Navigation handlers
+    const handleRoomNumberClick = () => {
+        navigate(`/student/${studentId}/room`);
+    };
+
+    const handleCheckInOutStatusClick = () => {
+        navigate(`/student/${studentId}/checkinout`);
+    };
+
+    const handleServiceRequestsClick = () => {
+        navigate(`/student/${studentId}/services`);
     };
 
     // Determine check-in status based on latest activity
@@ -119,6 +135,16 @@ const StudentDashboard = () => {
         backgroundColor: '#ffffff',
         borderRadius: '0.75rem',
         border: '1px solid #e8c8b5ff'
+    };
+
+    const clickableCardStyle = {
+        ...cardStyle,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+        ':hover': {
+            transform: 'translateY(-2px)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        }
     };
 
     const getStatusColor = (status) => {
@@ -204,7 +230,27 @@ const StudentDashboard = () => {
                     gap: '1.5rem',
                     marginBottom: '2rem',
                 }}>
-                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Room Number Card - Clickable */}
+                    <div 
+                        style={{ 
+                            ...cardStyle, 
+                            padding: '1.5rem', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                        }}
+                        onClick={handleRoomNumberClick}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
                         <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faDoorOpen} /></span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
@@ -216,7 +262,27 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Check-in/out Status Card - Clickable */}
+                    <div 
+                        style={{ 
+                            ...cardStyle, 
+                            padding: '1.5rem', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                        }}
+                        onClick={handleCheckInOutStatusClick}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
                         <span style={{ color: getStatusColor(checkInStatus.status), fontSize: '2rem' }}>
                             {getStatusIcon(checkInStatus.status)}
                         </span>
@@ -244,7 +310,27 @@ const StudentDashboard = () => {
                         </div>
                     </div>
 
-                    <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    {/* Service Requests Card - Clickable */}
+                    <div 
+                        style={{ 
+                            ...cardStyle, 
+                            padding: '1.5rem', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '1rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                        }}
+                        onClick={handleServiceRequestsClick}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                            e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.transform = 'translateY(0)';
+                            e.currentTarget.style.boxShadow = 'none';
+                        }}
+                    >
                         <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>

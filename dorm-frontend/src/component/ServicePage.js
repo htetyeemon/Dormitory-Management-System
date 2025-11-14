@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
@@ -12,7 +12,9 @@ import {
     faScrewdriverWrench,
     faBuilding,
     faSearch,
-    faEye
+    faEye,
+    faArrowUp,
+    faList
 } from '@fortawesome/free-solid-svg-icons';
 
 const ServicePage = () => {
@@ -28,6 +30,10 @@ const ServicePage = () => {
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [roomInfo, setRoomInfo] = useState(null);
   const [dormitoryInfo, setDormitoryInfo] = useState(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  const requestsSectionRef = useRef(null);
+  const topSectionRef = useRef(null);
 
   const [formData, setFormData] = useState({
     serviceType: '',
@@ -52,9 +58,40 @@ const ServicePage = () => {
     padding: '1.5rem',
   };
 
+  // Consistent font sizes
+  const typography = {
+    heading: {
+      fontSize: '1.5rem',
+      fontWeight: 700,
+    },
+    subheading: {
+      fontSize: '1.125rem',
+      fontWeight: 600,
+    },
+    body: {
+      fontSize: '1rem',
+      fontWeight: 400,
+    },
+    small: {
+      fontSize: '0.875rem',
+      fontWeight: 400,
+    },
+    label: {
+      fontSize: '0.875rem',
+      fontWeight: 600,
+    }
+  };
+
   useEffect(() => {
     fetchServiceRequests();
     fetchRoomInfo();
+    
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [studentId]);
 
   useEffect(() => {
@@ -67,11 +104,10 @@ const ServicePage = () => {
       const response = await studentAPI.getServiceHistory(studentId);
       const requests = response.data || [];
       
-      // Sort requests by date in descending order (latest first)
       const sortedRequests = requests.sort((a, b) => {
         const dateA = new Date(a.date || a.dateTime);
         const dateB = new Date(b.date || b.dateTime);
-        return dateB - dateA; // Descending order
+        return dateB - dateA;
       });
       
       setServiceRequests(sortedRequests);
@@ -103,9 +139,13 @@ const ServicePage = () => {
       return;
     }
 
+    const searchLower = searchTerm.toLowerCase();
     const filtered = serviceRequests.filter(request =>
-      request.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.serviceType?.toLowerCase().includes(searchTerm.toLowerCase())
+      request.description?.toLowerCase().includes(searchLower) ||
+      request.serviceType?.toLowerCase().includes(searchLower) ||
+      request.status?.toLowerCase().includes(searchLower) ||
+      (request.priorityLvl && request.priorityLvl.toLowerCase().includes(searchLower)) ||
+      (request.id && request.id.toString().includes(searchTerm))
     );
     setFilteredRequests(filtered);
   };
@@ -217,9 +257,23 @@ const ServicePage = () => {
     setSelectedRequest(null);
   };
 
+  const scrollToRequests = () => {
+    requestsSectionRef.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   const getStatusBadge = (status) => {
     const statusStyles = {
-      'Pending': {
+      'PENDING': {
         backgroundColor: '#fff3cd',
         color: '#856404',
         borderColor: '#ffeaa7'
@@ -241,8 +295,11 @@ const ServicePage = () => {
       }
     };
 
-    const style = statusStyles[status] || statusStyles['Pending'];
-    const label = status || 'Pending';
+    const normalizedStatus = (status || 'PENDING').toUpperCase();
+    const style = statusStyles[normalizedStatus] || statusStyles['PENDING'];
+    const label = normalizedStatus === 'IN PROGRESS' ? 'IN PROGRESS' : 
+                  normalizedStatus === 'PENDING' ? 'PENDING' : 
+                  normalizedStatus;
 
     return (
       <span style={{
@@ -279,25 +336,68 @@ const ServicePage = () => {
   return (
     <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* Header - Consistent with StudentDashboard */}
-        <div style={{ marginBottom: '2rem' }}>
-          <h1 style={{
-            color: '#000000',
-            fontSize: '2.25rem',
-            fontWeight: 600,
-            lineHeight: 1.25,
-            letterSpacing: '-0.033em',
-            marginBottom: '0.5rem',
+        {/* Header */}
+        <div style={{ marginBottom: '2rem' }} ref={topSectionRef}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '1rem',
           }}>
-            Service Request Dashboard
-          </h1>
-          <p style={{
-            color: '#191919ff',
-            fontSize: '1rem',
-            fontWeight: 400,
-          }}>
-            Submit and track your maintenance and service requests
-          </p>
+            <div>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8rem',
+                marginBottom: '0.5rem',
+              }}>
+                <h1 style={{
+                  color: '#000000',
+                  fontSize: '2.25rem',
+                  fontWeight: 600,
+                  lineHeight: 1.25,
+                  letterSpacing: '-0.033em',
+                  margin: 0,
+                }}>
+                  Service Request Dashboard
+                </h1>
+              </div>
+              
+              <p style={{
+                color: '#191919ff',
+                fontSize: '1rem',
+                fontWeight: 400,
+                marginBottom:'2rem'
+              }}>
+                Submit and track your maintenance and service requests
+              </p>
+              
+              <button
+                type="button"
+                onClick={scrollToRequests}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.5rem 1rem',
+                  backgroundColor: '#7d2923',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  fontWeight: 510,
+                  cursor: 'pointer',
+                  transition: 'background-color 0.2s',
+                  whiteSpace: 'nowrap',
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#6a221d'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#7d2923'}
+              >
+                <FontAwesomeIcon icon={faList} />
+                View My Requests
+              </button>
+            </div>
+          </div>
         </div>
 
         <div style={{
@@ -319,18 +419,17 @@ const ServicePage = () => {
               display: 'flex',
               flexDirection: 'column',
             }}>
-              <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '2rem' }}>
                 <h2 style={{
                   color: '#000000',
-                  fontSize: '1.5rem',
-                  fontWeight: 700,
+                  ...typography.heading,
                   marginBottom: '0.5rem',
                 }}>
                   Submit Service Request
                 </h2>
                 <p style={{
                   color: '#191919ff',
-                  fontSize: '1rem',
+                  ...typography.body,
                 }}>
                   Please fill out the form below to submit a service request.
                 </p>
@@ -347,8 +446,7 @@ const ServicePage = () => {
                   <label style={{
                     display: 'block',
                     color: '#000000',
-                    fontSize: '1rem',
-                    fontWeight: 510,
+                    ...typography.label,
                     marginBottom: '0.5rem',
                   }}>Service Type</label>
                   <select
@@ -362,7 +460,8 @@ const ServicePage = () => {
                       border: '1px solid #e2d6cf',
                       borderRadius: '0.375rem',
                       backgroundColor: '#ffffff',
-                      fontSize: '1rem',
+                      ...typography.body,
+                      height: '48px',
                     }}
                   >
                     <option value="">Select service type...</option>
@@ -381,13 +480,17 @@ const ServicePage = () => {
                   <label style={{
                     display: 'block',
                     color: '#000000',
-                    fontSize: '1rem',
-                    fontWeight: 510,
-                    marginBottom: '0.5rem',
+                    ...typography.label,
+                    marginBottom: '0.75rem',
                   }}>Priority Level</label>
-                  <div style={{ display: 'flex', gap: '1rem' }}>
+                  <div style={{ display: 'flex', gap: '1.5rem' }}>
                     {['low', 'medium', 'high'].map(level => (
-                      <label key={level} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <label key={level} style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.5rem',
+                        cursor: 'pointer',
+                      }}>
                         <input
                           type="radio"
                           name="priorityLvl"
@@ -397,7 +500,7 @@ const ServicePage = () => {
                           style={{ margin: 0 }}
                         />
                         <span style={{ 
-                          fontSize: '1rem',
+                          ...typography.body,
                           color: '#191919ff',
                           textTransform: 'capitalize'
                         }}>{level}</span>
@@ -407,12 +510,11 @@ const ServicePage = () => {
                 </div>
 
                 {/* Description */}
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                   <label style={{
                     display: 'block',
                     color: '#000000',
-                    fontSize: '1rem',
-                    fontWeight: 510,
+                    ...typography.label,
                     marginBottom: '0.5rem',
                   }}>Description of Issue</label>
                   <textarea
@@ -422,13 +524,13 @@ const ServicePage = () => {
                     required
                     style={{
                       width: '100%',
-                      height: '85%',
-                      minHeight: '120px',
+                      flex: 1,
+                      minHeight: '140px',
                       padding: '0.75rem',
                       border: '1px solid #e2d6cf',
                       borderRadius: '0.375rem',
                       backgroundColor: '#ffffff',
-                      fontSize: '1rem',
+                      ...typography.body,
                       resize: 'vertical',
                     }}
                     placeholder="Please provide a detailed description of the problem..."
@@ -441,8 +543,7 @@ const ServicePage = () => {
                     <label style={{
                       display: 'block',
                       color: '#000000',
-                      fontSize: '1rem',
-                      fontWeight: 510,
+                      ...typography.label,
                       marginBottom: '0.5rem',
                     }}>Preferred Date</label>
                     <input
@@ -456,7 +557,8 @@ const ServicePage = () => {
                         border: '1px solid #e2d6cf',
                         borderRadius: '0.375rem',
                         backgroundColor: '#ffffff',
-                        fontSize: '1rem',
+                        ...typography.body,
+                        height: '48px',
                       }}
                     />
                   </div>
@@ -465,8 +567,7 @@ const ServicePage = () => {
                     <label style={{
                       display: 'block',
                       color: '#000000',
-                      fontSize: '1rem',
-                      fontWeight: 510,
+                      ...typography.label,
                       marginBottom: '0.5rem',
                     }}>Preferred Time</label>
                     <div 
@@ -477,7 +578,8 @@ const ServicePage = () => {
                         border: '1px solid #e2d6cf',
                         borderRadius: '0.375rem',
                         backgroundColor: '#ffffff',
-                        fontSize: '1rem',
+                        ...typography.body,
+                        height: '48px',
                         cursor: 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -492,28 +594,43 @@ const ServicePage = () => {
                           'Select time...'
                         }
                       </span>
-                    
                     </div>
                   </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  style={{
-                    padding: '0.75rem 1.5rem',
-                    backgroundColor: '#7d2923',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '0.375rem',
-                    fontSize: '1rem',
-                    fontWeight: 510,
-                    cursor: submitting ? 'not-allowed' : 'pointer',
-                    opacity: submitting ? 0.6 : 1,
-                  }}
-                >
-                  {submitting ? 'Submitting...' : 'Submit Service Request'}
-                </button>
+                {/* Submit Button */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  alignItems: 'center',
+                  marginTop: '1rem',
+                }}>
+                  <button
+                    type="submit"
+                    disabled={submitting}
+                    style={{
+                      padding: '0.75rem 2rem',
+                      backgroundColor: '#7d2923',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '0.375rem',
+                      ...typography.body,
+                      fontWeight: 510,
+                      cursor: submitting ? 'not-allowed' : 'pointer',
+                      opacity: submitting ? 0.6 : 1,
+                      transition: 'background-color 0.2s',
+                      minWidth: '200px',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!submitting) e.target.style.backgroundColor = '#6a221d';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!submitting) e.target.style.backgroundColor = '#7d2923';
+                    }}
+                  >
+                    {submitting ? 'Submitting...' : 'Submit Service Request'}
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -529,8 +646,7 @@ const ServicePage = () => {
             <div style={cardStyle}>
               <h3 style={{
                 color: '#000000',
-                fontSize: '1.5rem',
-                fontWeight: 700,
+                ...typography.heading,
                 marginBottom: '1.5rem',
               }}>
                 Contact Information
@@ -541,34 +657,34 @@ const ServicePage = () => {
                 gap: '1.25rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem', paddingRight:'10px'}}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faPhone} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office Phone</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office Phone</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>
                       {dormitoryInfo?.phoneNum || '(555) 123-4567'}
                     </p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faEnvelope} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Maintenance Emergency Email</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Maintenance Emergency Email</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>
                       {dormitoryInfo?.email || 'support@dormservices.edu'}
                     </p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faLocationDot} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Physical Address</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, fontSize: '0.875rem' }}>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Physical Address</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.small }}>
                       {dormitoryInfo ? (
                         <>
                           {dormitoryInfo.buildingName && `${dormitoryInfo.buildingName}, `}
@@ -582,12 +698,12 @@ const ServicePage = () => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faDoorOpen} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Your Room</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Your Room</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>
                       {roomInfo?.room ? (
                         `Room ${roomInfo.room.roomNum}, Floor ${roomInfo.room.floor}, Block ${roomInfo.room.block}`
                       ) : (
@@ -603,8 +719,7 @@ const ServicePage = () => {
             <div style={cardStyle}>
               <h3 style={{
                 color: '#000000',
-                fontSize: '1.5rem',
-                fontWeight: 700,
+                ...typography.heading,
                 marginBottom: '1.5rem',
               }}>
                 Service Hours
@@ -615,30 +730,30 @@ const ServicePage = () => {
                 gap: '1.25rem',
               }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faTriangleExclamation} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Emergency Services</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>24/7 Availability</p>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Emergency Services</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>24/7 Availability</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faScrewdriverWrench} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>General Maintenance</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Fri, 9:00 AM 5:00 PM</p>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>General Maintenance</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>Mon-Fri, 9:00 AM - 5:00 PM</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                  <span style={{ color: '#CD853F', fontSize: '1.5rem', marginTop: '0.125rem',paddingRight:'10px' }}>
+                  <span style={{ color: '#CD853F', fontSize: '1.1rem', marginTop: '0.125rem', minWidth: '20px' }}>
                     <FontAwesomeIcon icon={faBuilding} />
                   </span>
                   <div>
-                    <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office</p>
-                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>Mon-Sat, 8:00 AM 8:00 PM</p>
+                    <p style={{ ...typography.small, color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Dormitory Office</p>
+                    <p style={{ fontWeight: 500, color: '#191919ff', margin: 0, ...typography.body }}>Mon-Sat, 8:00 AM - 8:00 PM</p>
                   </div>
                 </div>
               </div>
@@ -647,7 +762,7 @@ const ServicePage = () => {
         </div>
 
         {/* My Service Requests Section */}
-        <div style={cardStyle}>
+        <div style={cardStyle} ref={requestsSectionRef}>
           <div style={{ 
             display: 'flex', 
             justifyContent: 'space-between', 
@@ -656,8 +771,7 @@ const ServicePage = () => {
           }}>
             <h2 style={{
               color: '#000000',
-              fontSize: '1.5rem',
-              fontWeight: 700,
+              ...typography.heading,
               margin: 0,
             }}>
               My Service Requests
@@ -687,7 +801,7 @@ const ServicePage = () => {
                   border: '1px solid #e2d6cf',
                   borderRadius: '0.375rem',
                   backgroundColor: '#ffffff',
-                  fontSize: '0.875rem',
+                  ...typography.small,
                 }}
               />
             </div>
@@ -724,35 +838,35 @@ const ServicePage = () => {
                       <th style={{ 
                         padding: '1rem', 
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>ID</th>
                       <th style={{ 
                         padding: '1rem', 
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>Description</th>
                       <th style={{ 
                         padding: '1rem', 
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>Service Type</th>
                       <th style={{ 
                         padding: '1rem', 
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>Status</th>
                       <th style={{ 
                         padding: '1rem', 
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>Date</th>
@@ -760,7 +874,7 @@ const ServicePage = () => {
                         padding: '1rem',
                         paddingRight:'0.1rem',
                         textAlign: 'left', 
-                        fontSize: '1rem',
+                        ...typography.small,
                         fontWeight: 600,
                         color: '#000000'
                       }}>Action</th>
@@ -771,13 +885,13 @@ const ServicePage = () => {
                       <tr key={request.id || index} style={{ borderBottom: '1px solid #e2d6cf' }}>
                         <td style={{ 
                           padding: '1rem', 
-                          fontSize: '0.875rem',
+                          ...typography.small,
                           color: '#191919ff',
                           fontFamily: 'monospace'
                         }}>#{request.id}</td>
                         <td style={{ 
                           padding: '1rem', 
-                          fontSize: '0.875rem',
+                          ...typography.small,
                           color: '#191919ff',
                           maxWidth: '200px',
                         }} title={request.description}>
@@ -785,13 +899,13 @@ const ServicePage = () => {
                         </td>
                         <td style={{ 
                           padding: '1rem', 
-                          fontSize: '0.875rem',
+                          ...typography.small,
                           color: '#191919ff'
                         }}>{request.serviceType}</td>
                         <td style={{ padding: '1rem' }}>{getStatusBadge(request.status)}</td>
                         <td style={{ 
                           padding: '1rem', 
-                          fontSize: '0.875rem',
+                          ...typography.small,
                           color: '#191919ff'
                         }}>{formatDate(request.date || request.dateTime)}</td>
                         <td style={{ padding: '1rem', paddingRight:'0.1rem',textAlign: 'left' }}>
@@ -821,6 +935,7 @@ const ServicePage = () => {
                     justifyContent: 'center',
                     padding: '3rem',
                     color: '#191919ff',
+                    ...typography.body,
                   }}>
                     {searchTerm ? 'No service requests found matching your search.' : 'No service requests available.'}
                   </div>
@@ -829,9 +944,46 @@ const ServicePage = () => {
             </div>
           )}
         </div>
+
+        {/* Back to Top Button */}
+        {showScrollTop && (
+          <button
+            onClick={scrollToTop}
+            style={{
+              position: 'fixed',
+              bottom: '2rem',
+              right: '2rem',
+              width: '3rem',
+              height: '3rem',
+              backgroundColor: '#CD853F',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '50%',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.25rem',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+              zIndex: 100,
+              transition: 'background-color 0.2s, transform 0.2s',
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.backgroundColor = '#c36e19ff';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.backgroundColor = '#c36e19ff';
+              e.target.style.transform = 'translateY(0)';
+            }}
+            title="Back to Top"
+          >
+            <FontAwesomeIcon icon={faArrowUp} />
+          </button>
+        )}
       </div>
 
-      {/* Time Picker Dialog */}
+      {/* Time Picker Dialog - Remains the same */}
       {showTimePicker && (
         <div style={{
           position: 'fixed',
@@ -858,8 +1010,7 @@ const ServicePage = () => {
             }}>
               <h3 style={{
                 color: '#000000',
-                fontSize: '1.25rem',
-                fontWeight: 700,
+                ...typography.subheading,
                 margin: 0,
               }}>Select Time</h3>
               <button onClick={cancelTime} style={{
@@ -880,8 +1031,7 @@ const ServicePage = () => {
             }}>
               <div style={{ flex: 1 }}>
                 <div style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
+                  ...typography.label,
                   color: '#000000',
                   marginBottom: '0.5rem',
                 }}>Hour</div>
@@ -900,6 +1050,7 @@ const ServicePage = () => {
                         backgroundColor: timePickerState.hour === hour ? '#7d2923' : 'transparent',
                         color: timePickerState.hour === hour ? '#ffffff' : '#191919ff',
                         textAlign: 'center',
+                        ...typography.small,
                       }}
                       onClick={() => handleTimeChange('hour', hour)}
                     >
@@ -911,8 +1062,7 @@ const ServicePage = () => {
               
               <div style={{ flex: 1 }}>
                 <div style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
+                  ...typography.label,
                   color: '#000000',
                   marginBottom: '0.5rem',
                 }}>Minute</div>
@@ -931,6 +1081,7 @@ const ServicePage = () => {
                         backgroundColor: timePickerState.minute === minute ? '#7d2923' : 'transparent',
                         color: timePickerState.minute === minute ? '#ffffff' : '#191919ff',
                         textAlign: 'center',
+                        ...typography.small,
                       }}
                       onClick={() => handleTimeChange('minute', minute)}
                     >
@@ -942,8 +1093,7 @@ const ServicePage = () => {
               
               <div style={{ flex: 1 }}>
                 <div style={{
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
+                  ...typography.label,
                   color: '#000000',
                   marginBottom: '0.5rem',
                 }}>Period</div>
@@ -962,6 +1112,7 @@ const ServicePage = () => {
                         backgroundColor: timePickerState.period === period ? '#7d2923' : 'transparent',
                         color: timePickerState.period === period ? '#ffffff' : '#191919ff',
                         textAlign: 'center',
+                        ...typography.small,
                       }}
                       onClick={() => handleTimeChange('period', period)}
                     >
@@ -984,7 +1135,7 @@ const ServicePage = () => {
                 backgroundColor: 'transparent',
                 color: '#191919ff',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                ...typography.small,
               }}>
                 Cancel
               </button>
@@ -995,7 +1146,7 @@ const ServicePage = () => {
                 backgroundColor: '#7d2923',
                 color: '#ffffff',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                ...typography.small,
               }}>
                 OK
               </button>
@@ -1004,7 +1155,7 @@ const ServicePage = () => {
         </div>
       )}
 
-      {/* Detail Modal */}
+      {/* Detail Modal - Remains the same */}
       {showModal && selectedRequest && (
         <div style={{
           position: 'fixed',
@@ -1031,19 +1182,9 @@ const ServicePage = () => {
             }}>
               <h3 style={{
                 color: '#000000',
-                fontSize: '1.25rem',
-                fontWeight: 700,
+                ...typography.subheading,
                 margin: 0,
               }}>Request Details</h3>
-              <button onClick={closeModal} style={{
-                background: 'none',
-                border: 'none',
-                fontSize: '1.25rem',
-                cursor: 'pointer',
-                color: '#191919ff',
-              }}>
-                ?
-              </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -1054,21 +1195,19 @@ const ServicePage = () => {
               }}>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Request ID</div>
                   <div style={{
                     color: '#191919ff',
                     fontFamily: 'monospace',
-                    fontSize:'1rem'
+                    ...typography.body
                   }}>#{selectedRequest.id}</div>
                 </div>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Status</div>
@@ -1076,39 +1215,36 @@ const ServicePage = () => {
                 </div>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Service Type</div>
-                  <div style={{ color: '#191919ff',fontSize:'0.95rem' }}>{selectedRequest.serviceType}</div>
+                  <div style={{ color: '#191919ff', ...typography.body }}>{selectedRequest.serviceType}</div>
                 </div>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Priority</div>
                   <div style={{ 
                     color: '#191919ff',
                     textTransform: 'capitalize',
-                    fontSize:'0.95rem'
+                    ...typography.body
                   }}>{selectedRequest.priorityLvl || 'Not specified'}</div>
                 </div>
               </div>
 
               <div>
                 <div style={{
-                  fontSize: '1rem',
-                  fontWeight: 600,
+                  ...typography.label,
                   color: '#000000',
                   marginBottom: '0.5rem',
                 }}>Description</div>
                 <div style={{
                   color: '#191919ff',
                   lineHeight: 1.5,
-                  fontSize:'0.95rem'
+                  ...typography.body
                 }}>{selectedRequest.description}</div>
               </div>
 
@@ -1119,23 +1255,21 @@ const ServicePage = () => {
               }}>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Submitted Date</div>
-                  <div style={{ color: '#191919ff',fontSize:'0.95rem' }}>
+                  <div style={{ color: '#191919ff', ...typography.body }}>
                     {formatDate(selectedRequest.date || selectedRequest.dateTime)}
                   </div>
                 </div>
                 <div>
                   <div style={{
-                    fontSize: '1rem',
-                    fontWeight: 600,
+                    ...typography.label,
                     color: '#000000',
                     marginBottom: '0.25rem',
                   }}>Room Number</div>
-                  <div style={{ color: '#191919ff',fontSize:'0.95rem' }}>
+                  <div style={{ color: '#191919ff', ...typography.body }}>
                     {roomInfo?.room ? `Room ${roomInfo.room.roomNum}` : 'Not assigned'}
                   </div>
                 </div>
@@ -1154,7 +1288,7 @@ const ServicePage = () => {
                 backgroundColor: '#7d2923',
                 color: '#ffffff',
                 cursor: 'pointer',
-                fontSize: '0.875rem',
+                ...typography.small,
               }}>
                 Close
               </button>

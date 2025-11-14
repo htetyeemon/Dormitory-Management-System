@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -128,29 +129,53 @@ public class StudentController {
         }
     }
 
-    // Announcements - View all announcements
-    @GetMapping("/announcements")
-    public ResponseEntity<List<Announcement>> getAllAnnouncements() {
+   @GetMapping("/{studentId}/announcements")
+    public ResponseEntity<List<Announcement>> getAllAnnouncements(@PathVariable Long studentId) {
         try {
-            List<Announcement> announcements = announcementService.getAllAnnouncements();
+            // Get student's room and dormitory
+            RoomInfoResponse roomInfo = roomService.getStudentRoomInfo(studentId);
+            if (roomInfo == null || roomInfo.getRoom() == null) {
+                return ResponseEntity.ok(List.of()); // No room assigned, return empty list
+            }
+            
+            Long dormId = roomInfo.getRoom().getDormitory().getId();
+            List<Announcement> announcements = announcementService.getAllAnnouncementsByDormitory(dormId);
             return ResponseEntity.ok(announcements);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @GetMapping("/announcements/dateAsc")
-    public ResponseEntity<List<Announcement>> getAllAnnouncementsByAsc() {
+    
+    @GetMapping("/{studentId}/announcements/dateAsc")
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsByAsc(@PathVariable Long studentId) {
         try {
-            List<Announcement> announcements = announcementService.getAllAnnouncementsByDateAsc();
+            RoomInfoResponse roomInfo = roomService.getStudentRoomInfo(studentId);
+            if (roomInfo == null || roomInfo.getRoom() == null) {
+                return ResponseEntity.ok(List.of());
+            }
+            
+            Long dormId = roomInfo.getRoom().getDormitory().getId();
+            List<Announcement> announcements = announcementService.getAllAnnouncementsByDormitory(dormId);
+            // Sort ascending by date
+            announcements.sort(Comparator.comparing(Announcement::getDateTime));
             return ResponseEntity.ok(announcements);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
-    @GetMapping("/announcements/dateDesc")
-    public ResponseEntity<List<Announcement>> getAllAnnouncementsByDesc() {
+    
+    @GetMapping("/{studentId}/announcements/dateDesc")
+    public ResponseEntity<List<Announcement>> getAllAnnouncementsByDesc(@PathVariable Long studentId) {
         try {
-            List<Announcement> announcements = announcementService.getAllAnnouncementsByDateDesc();
+            RoomInfoResponse roomInfo = roomService.getStudentRoomInfo(studentId);
+            if (roomInfo == null || roomInfo.getRoom() == null) {
+                return ResponseEntity.ok(List.of());
+            }
+            
+            Long dormId = roomInfo.getRoom().getDormitory().getId();
+            List<Announcement> announcements = announcementService.getAllAnnouncementsByDormitory(dormId);
+            // Sort descending by date (already done in repo, but ensure it)
+            announcements.sort(Comparator.comparing(Announcement::getDateTime).reversed());
             return ResponseEntity.ok(announcements);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
