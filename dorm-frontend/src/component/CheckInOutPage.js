@@ -183,7 +183,7 @@ const CheckInOutPage = () => {
     }
 
     // Check for duplicate request (any type for the same date)
-    const backendType = formData.requestType === 'check-in' ? 'CHECKIN' : 'CHECKOUT';
+    const backendType = formData.requestType === 'check-in' ? 'Check-in' : 'Check-out';
     if (checkForDuplicateRequest(backendType, formData.requestDate)) {
       setErrors(prev => ({ 
         ...prev, 
