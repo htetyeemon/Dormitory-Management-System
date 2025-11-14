@@ -101,4 +101,8 @@ public class AnnouncementService {
                 .collect(Collectors.toList());
     }
 
+    public List<Announcement> getRecentAnnouncementsByManager(Long managerId) {
+        return announcementRepository.findTop5ByManagerIdOrderByDateTimeDesc(managerId);
+    }
+
 }

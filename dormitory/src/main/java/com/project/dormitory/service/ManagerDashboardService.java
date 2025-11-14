@@ -39,7 +39,8 @@ public class ManagerDashboardService {
             roomService.getAvailableRoomsCount(dormId),
             checkInOutService.getPendingRequestsCount(),
             complaintRepairService.getPendingComplaintsCount(),
-            announcementService.getRecentAnnouncements()
+            announcementService.getRecentAnnouncementsByManager(managerId)
+            
         );
     }
     public List<Announcement> getRecentActivities(Long managerId) {

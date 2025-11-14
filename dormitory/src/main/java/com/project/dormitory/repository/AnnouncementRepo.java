@@ -45,5 +45,8 @@ public interface AnnouncementRepo extends JpaRepository<Announcement,Long>{
 
     List<Announcement> findAllByOrderByDateTimeDesc();
 
+
+    List<Announcement> findTop5ByManagerIdOrderByDateTimeDesc(Long managerId);
+
 }
 
