@@ -339,8 +339,8 @@ const ManagerRooms = () => {
               onFocus={(e) => e.target.style.borderColor = '#7d2923'}
               onBlur={(e) => e.target.style.borderColor = '#e8c8b5ff'}
             >
-              <option value="asc">Room Number (A-Z)</option>
-              <option value="desc">Room Number (Z-A)</option>
+              <option value="asc">Room Number (Ascending)</option>
+              <option value="desc">Room Number (Descending)</option>
             </select>
             <span style={{
               position: 'absolute',

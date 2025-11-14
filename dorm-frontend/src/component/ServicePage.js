@@ -492,7 +492,7 @@ const ServicePage = () => {
                           'Select time...'
                         }
                       </span>
-                      <span>?</span>
+                    
                     </div>
                   </div>
                 </div>
@@ -869,7 +869,7 @@ const ServicePage = () => {
                 cursor: 'pointer',
                 color: '#191919ff',
               }}>
-                ?
+                
               </button>
             </div>
             

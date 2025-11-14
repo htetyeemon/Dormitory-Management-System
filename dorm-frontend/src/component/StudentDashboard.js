@@ -349,7 +349,7 @@ const StudentDashboard = () => {
                                                     onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                                                     onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                                                 >
-                                                    {isExpanded ? 'Read Less ?' : 'Read More ?'}
+                                                    {isExpanded ? 'Read Less ↑' : 'Read More ↓'}
                                                 </button>
                                             )}
                                         </div>

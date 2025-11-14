@@ -130,7 +130,7 @@ const Layout = ({ children }) => {
                 zIndex: 1000,
                 boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
             }}>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f3efecff' }}>DormMS</div>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f3efecff' }}>MFUDorm</div>
 
                 <nav style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                     {getNavigationLinks()}

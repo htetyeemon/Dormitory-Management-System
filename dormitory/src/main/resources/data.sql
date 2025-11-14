@@ -131,3 +131,16 @@ INSERT INTO check_in_out (id, stu_id, date, type) VALUES
 (23, 6731503007, '2024-11-20', 'CHECK_OUT'),
 (24, 6731503007, '2024-11-25', 'CHECK_IN');
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
