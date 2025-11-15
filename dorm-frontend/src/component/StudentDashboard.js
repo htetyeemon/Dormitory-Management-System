@@ -18,6 +18,7 @@ const StudentDashboard = () => {
     const { announcementsUpdateTrigger } = useAnnouncements();
     const [dashboardData, setDashboardData] = useState(null);
     const [checkInOutHistory, setCheckInOutHistory] = useState([]);
+    const [serviceRequests, setServiceRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const { studentId } = useParams();
@@ -27,16 +28,17 @@ const StudentDashboard = () => {
     useEffect(() => {
         fetchDashboardData();
         fetchCheckInOutHistory();
-    }, [studentId, announcementsUpdateTrigger]); // Add announcementsUpdateTrigger as dependency
+        fetchServiceRequests();
+    }, [studentId, announcementsUpdateTrigger]);
 
-    // Add this useEffect to refresh data periodically for real-time updates
     useEffect(() => {
         const interval = setInterval(() => {
             fetchDashboardData();
             fetchCheckInOutHistory();
-        }, 30000); // Refresh every 30 seconds
+            fetchServiceRequests();
+        }, 30000);
 
-        return () => clearInterval(interval); // Cleanup on unmount
+        return () => clearInterval(interval);
     }, [studentId]);
 
     const fetchDashboardData = async () => {
@@ -50,20 +52,65 @@ const StudentDashboard = () => {
         }
     };
 
+    const fetchServiceRequests = async () => {
+        try {
+            const response = await studentAPI.getServiceHistory(studentId);
+            const requests = response.data || [];
+            
+            const sortedRequests = requests.sort((a, b) => {
+                const dateA = new Date(a.date || a.dateTime);
+                const dateB = new Date(b.date || b.dateTime);
+                return dateB - dateA;
+            });
+            
+            setServiceRequests(sortedRequests);
+            console.log('Service requests fetched for dashboard:', sortedRequests);
+        } catch (err) {
+            console.error('Error fetching service requests for dashboard:', err);
+            setServiceRequests([]);
+        }
+    };
+
     const fetchCheckInOutHistory = async () => {
         try {
             const response = await studentAPI.getCheckInOutHistory(user.id);
-            // Ensure we have an array even if response.data is null/undefined
             setCheckInOutHistory(response.data || []);
         } catch (err) {
             console.error('Error fetching check-in/out history:', err);
-            setCheckInOutHistory([]); // Set empty array on error
+            setCheckInOutHistory([]);
         } finally {
             setLoading(false);
         }
     };
 
-    // Navigation handlers
+    const countUnresolvedRequests = () => {
+        if (!serviceRequests || !Array.isArray(serviceRequests)) {
+            return 0;
+        }
+        
+        const unresolved = serviceRequests.filter(request => {
+            if (!request) return false;
+            
+            const status = request.status ? request.status.toUpperCase().trim() : 'UNKNOWN';
+            
+            const isUnresolved = 
+                status === 'PENDING' || 
+                status === 'IN PROGRESS' || 
+                status === 'IN_PROGRESS' ||
+                status === 'APPROVED' ||
+                status === 'OPEN' ||
+                (status !== 'RESOLVED' && 
+                 status !== 'CANCELLED' && 
+                 status !== 'COMPLETED' &&
+                 status !== 'CLOSED' &&
+                 status !== 'DONE');
+            
+            return isUnresolved;
+        });
+        
+        return unresolved.length;
+    };
+
     const handleRoomNumberClick = () => {
         navigate(`/student/${studentId}/room`);
     };
@@ -73,23 +120,22 @@ const StudentDashboard = () => {
     };
 
     const handleServiceRequestsClick = () => {
-        navigate(`/student/${studentId}/services`);
+        navigate(`/student/${studentId}/services`, { 
+            state: { scrollToRequests: true } 
+        });
     };
 
-    // Determine check-in status based on latest activity
     const getCheckInStatus = () => {
         if (!checkInOutHistory || checkInOutHistory.length === 0) {
             return { status: 'Unknown', lastActivity: null };
         }
 
-        // Sort activities by date (newest first)
         const sortedActivities = [...checkInOutHistory].sort((a, b) =>
             new Date(b.date) - new Date(a.date)
         );
 
         const latestActivity = sortedActivities[0];
 
-        // Enhanced status determination logic
         if (latestActivity.status === 'APPROVED') {
             return {
                 status: 'Approved',
@@ -137,16 +183,6 @@ const StudentDashboard = () => {
         border: '1px solid #e8c8b5ff'
     };
 
-    const clickableCardStyle = {
-        ...cardStyle,
-        cursor: 'pointer',
-        transition: 'all 0.2s ease-in-out',
-        ':hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-        }
-    };
-
     const getStatusColor = (status) => {
         switch (status) {
             case 'Checked In':
@@ -164,7 +200,6 @@ const StudentDashboard = () => {
 
     const getStatusIcon = (status) => {
         switch (status) {
-            
             case 'Pending Approval':
                 return <FontAwesomeIcon icon={faHourglassStart} />;
             case 'Rejected':
@@ -198,6 +233,7 @@ const StudentDashboard = () => {
     }
 
     const checkInStatus = getCheckInStatus();
+    const unresolvedRequestsCount = countUnresolvedRequests();
 
     return (
         <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
@@ -334,10 +370,10 @@ const StudentDashboard = () => {
                         <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faScrewdriverWrench} /></span>
                         <div>
                             <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
-                                Service Requests
+                                Unresolved Service Requests
                             </p>
                             <p style={{ color: '#000000', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
-                                {dashboardData?.recentRequests?.length || 0}
+                                {unresolvedRequestsCount}
                             </p>
                         </div>
                     </div>

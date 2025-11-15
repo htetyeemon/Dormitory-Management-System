@@ -157,7 +157,7 @@ const RoomPage = () => {
                   }}>
                     <span style={{
                       color: '#191919ff',
-                      fontSize: '0.875rem',
+                      fontSize: '1rem',
                       fontWeight: 400,
                     }}>
                       Room Number
@@ -179,10 +179,10 @@ const RoomPage = () => {
                   }}>
                     <span style={{
                       color: '#191919ff',
-                      fontSize: '0.875rem',
+                      fontSize: '1rem',
                       fontWeight: 400,
                     }}>
-                      Building/Block
+                      Block
                     </span>
                     <span style={{
                       color: '#69301cff',
@@ -201,7 +201,7 @@ const RoomPage = () => {
                   }}>
                     <span style={{
                       color: '#191919ff',
-                      fontSize: '0.875rem',
+                      fontSize: '1rem',
                       fontWeight: 400,
                     }}>
                       Floor
@@ -349,7 +349,7 @@ const RoomPage = () => {
                       <FontAwesomeIcon icon={faPhone} />
                     </span>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Phone</p>
+                      <p style={{ fontSize: '1rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Phone</p>
                       <a 
                         style={{ 
                           fontWeight: 500, 
@@ -370,7 +370,7 @@ const RoomPage = () => {
                       <FontAwesomeIcon icon={faEnvelope} />
                     </span>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Email</p>
+                      <p style={{ fontSize: '1rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Email</p>
                       <a 
                         style={{ 
                           fontWeight: 500, 
@@ -391,7 +391,7 @@ const RoomPage = () => {
                       <FontAwesomeIcon icon={faLocationDot} />
                     </span>
                     <div>
-                      <p style={{ fontSize: '0.875rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Address</p>
+                      <p style={{ fontSize: '1rem', color: '#000000', margin: '0 0 0.25rem 0', fontWeight: "bold" }}>Address</p>
                       <p style={{ fontWeight: 500, color: '#191919ff', margin: 0 }}>123 University Drive, MFU City</p>
                     </div>
                   </div>

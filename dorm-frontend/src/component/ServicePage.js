@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { studentAPI } from '../service/api';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
     faPhone,
@@ -14,12 +14,14 @@ import {
     faSearch,
     faEye,
     faArrowUp,
-    faList
+    faList,
+    faFilter
 } from '@fortawesome/free-solid-svg-icons';
 
 const ServicePage = () => {
   const { user } = useAuth();
   const { studentId } = useParams();
+  const location = useLocation();
   const [serviceRequests, setServiceRequests] = useState([]);
   const [filteredRequests, setFilteredRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,8 @@ const ServicePage = () => {
   const [roomInfo, setRoomInfo] = useState(null);
   const [dormitoryInfo, setDormitoryInfo] = useState(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, PENDING, IN_PROGRESS, RESOLVED
 
   const requestsSectionRef = useRef(null);
   const topSectionRef = useRef(null);
@@ -95,8 +99,76 @@ const ServicePage = () => {
   }, [studentId]);
 
   useEffect(() => {
+    // Check if navigated from dashboard with scroll intent
+    if (location.state?.scrollToRequests) {
+      setTimeout(() => {
+        scrollToRequests();
+      }, 100);
+    }
+  }, [location.state]);
+
+  useEffect(() => {
     filterRequests();
-  }, [serviceRequests, searchTerm]);
+  }, [serviceRequests, searchTerm, statusFilter]);
+
+  // Check if user has reached the maximum limit of service requests
+  const hasReachedRequestLimit = () => {
+    const activeRequests = serviceRequests.filter(request => 
+      request.status && !['RESOLVED', 'CANCELLED'].includes(request.status.toUpperCase())
+    );
+    return activeRequests.length >= 3;
+  };
+
+  // Get minimum date (today)
+  const getMinDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Validate date and time based on priority level
+  const validateDateTime = (date, time, period, priority) => {
+    const errors = {};
+    
+    if (date) {
+      const selectedDate = new Date(date);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Check if date is in the past
+      if (selectedDate < today) {
+        errors.date = 'Cannot select a date in the past';
+      }
+      
+      // For low and medium priority, check if it's a weekday and within business hours
+      if (priority === 'low' || priority === 'medium') {
+        const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+        
+        // Check if it's a weekend
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          errors.date = 'For low and medium priority, only weekdays (Monday-Friday) are allowed';
+        }
+        
+        // Check time if provided
+        if (time) {
+          const [hour] = time.split(':');
+          const hourNum = parseInt(hour);
+          const isPM = period === 'PM';
+          
+          // Convert to 24-hour format for comparison
+          let hour24 = isPM ? hourNum + 12 : hourNum;
+          if (hour24 === 12 && isPM) hour24 = 12;
+          if (hour24 === 12 && !isPM) hour24 = 0;
+          
+          // Check if outside business hours (9 AM - 5 PM)
+          if (hour24 < 9 || hour24 >= 17) {
+            errors.time = 'For low and medium priority, only 9:00 AM - 5:00 PM are allowed';
+          }
+        }
+      }
+    }
+    
+    return errors;
+  };
 
   const fetchServiceRequests = async () => {
     try {
@@ -104,7 +176,29 @@ const ServicePage = () => {
       const response = await studentAPI.getServiceHistory(studentId);
       const requests = response.data || [];
       
+      // Sort by status priority and then by date
       const sortedRequests = requests.sort((a, b) => {
+        // First sort by status priority
+        const statusPriority = {
+          'PENDING': 1,
+          'IN PROGRESS': 2,
+          'IN_PROGRESS': 2,
+          'APPROVED': 3,
+          'RESOLVED': 4,
+          'CANCELLED': 5
+        };
+        
+        const aStatus = (a.status || 'PENDING').toUpperCase();
+        const bStatus = (b.status || 'PENDING').toUpperCase();
+        
+        const aPriority = statusPriority[aStatus] || 6;
+        const bPriority = statusPriority[bStatus] || 6;
+        
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+        
+        // Then sort by date (newest first)
         const dateA = new Date(a.date || a.dateTime);
         const dateB = new Date(b.date || b.dateTime);
         return dateB - dateA;
@@ -134,19 +228,35 @@ const ServicePage = () => {
   };
 
   const filterRequests = () => {
-    if (!searchTerm.trim()) {
-      setFilteredRequests(serviceRequests);
-      return;
+    let filtered = serviceRequests;
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(request =>
+        request.description?.toLowerCase().includes(searchLower) ||
+        request.serviceType?.toLowerCase().includes(searchLower) ||
+        request.status?.toLowerCase().includes(searchLower) ||
+        (request.priorityLvl && request.priorityLvl.toLowerCase().includes(searchLower)) ||
+        (request.id && request.id.toString().includes(searchTerm))
+      );
     }
 
-    const searchLower = searchTerm.toLowerCase();
-    const filtered = serviceRequests.filter(request =>
-      request.description?.toLowerCase().includes(searchLower) ||
-      request.serviceType?.toLowerCase().includes(searchLower) ||
-      request.status?.toLowerCase().includes(searchLower) ||
-      (request.priorityLvl && request.priorityLvl.toLowerCase().includes(searchLower)) ||
-      (request.id && request.id.toString().includes(searchTerm))
-    );
+    // Apply status filter
+    if (statusFilter !== 'ALL') {
+      filtered = filtered.filter(request => {
+        const requestStatus = (request.status || 'PENDING').toUpperCase();
+        if (statusFilter === 'PENDING') {
+          return requestStatus === 'PENDING';
+        } else if (statusFilter === 'IN_PROGRESS') {
+          return requestStatus === 'IN PROGRESS' || requestStatus === 'IN_PROGRESS' || requestStatus === 'APPROVED';
+        } else if (statusFilter === 'RESOLVED') {
+          return requestStatus === 'RESOLVED' || requestStatus === 'CANCELLED';
+        }
+        return true;
+      });
+    }
+
     setFilteredRequests(filtered);
   };
 
@@ -156,9 +266,30 @@ const ServicePage = () => {
       ...prev,
       [name]: value
     }));
+
+    // Clear errors when user changes input
+    if (formErrors[name]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+
+    // Validate date and time when relevant fields change
+    if (name === 'preferredDate' || name === 'preferredTime' || name === 'timePeriod' || name === 'priorityLvl') {
+      const date = name === 'preferredDate' ? value : formData.preferredDate;
+      const time = name === 'preferredTime' ? value : formData.preferredTime;
+      const period = name === 'timePeriod' ? value : formData.timePeriod;
+      const priority = name === 'priorityLvl' ? value : formData.priorityLvl;
+
+      const errors = validateDateTime(date, time, period, priority);
+      setFormErrors(prev => ({ ...prev, ...errors }));
+    }
   };
 
   const handleTimePickerToggle = () => {
+    if (hasReachedRequestLimit()) return;
+    
     if (formData.preferredTime) {
       const [hour, minute] = formData.preferredTime.split(':');
       setTimePickerState(prev => ({
@@ -185,6 +316,16 @@ const ServicePage = () => {
       preferredTime: timeString,
       timePeriod: timePickerState.period
     }));
+
+    // Validate the selected time
+    const errors = validateDateTime(
+      formData.preferredDate, 
+      timeString, 
+      timePickerState.period, 
+      formData.priorityLvl
+    );
+    setFormErrors(prev => ({ ...prev, ...errors }));
+
     setShowTimePicker(false);
   };
 
@@ -210,6 +351,27 @@ const ServicePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check request limit
+    if (hasReachedRequestLimit()) {
+      alert('You have reached the maximum limit of 3 active service requests. Please wait for existing requests to be resolved before submitting new ones.');
+      return;
+    }
+
+    // Validate form data
+    const errors = validateDateTime(
+      formData.preferredDate,
+      formData.preferredTime,
+      formData.timePeriod,
+      formData.priorityLvl
+    );
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      alert('Please fix the validation errors before submitting.');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -217,6 +379,8 @@ const ServicePage = () => {
         serviceType: formData.serviceType,
         priorityLvl: formData.priorityLvl,
         description: formData.description,
+        preferredDate: formData.preferredDate || null,
+        preferredTime: formData.preferredTime ? `${formData.preferredTime} ${formData.timePeriod}` : null,
       };
 
       await studentAPI.createServiceRequest(studentId, requestData);
@@ -235,6 +399,8 @@ const ServicePage = () => {
         minute: '00',
         period: 'AM'
       });
+
+      setFormErrors({});
 
       fetchServiceRequests();
       
@@ -288,16 +454,27 @@ const ServicePage = () => {
         color: '#004085',
         borderColor: '#b3d7ff'
       },
+      'IN_PROGRESS': {
+        backgroundColor: '#cce7ff',
+        color: '#004085',
+        borderColor: '#b3d7ff'
+      },
       'RESOLVED': {
         backgroundColor: '#d4edda',
         color: '#155724',
         borderColor: '#c3e6cb'
+      },
+      'CANCELLED': {
+        backgroundColor: '#f8d7da',
+        color: '#721c24',
+        borderColor: '#f5c6cb'
       }
     };
 
     const normalizedStatus = (status || 'PENDING').toUpperCase();
     const style = statusStyles[normalizedStatus] || statusStyles['PENDING'];
     const label = normalizedStatus === 'IN PROGRESS' ? 'IN PROGRESS' : 
+                  normalizedStatus === 'IN_PROGRESS' ? 'IN PROGRESS' :
                   normalizedStatus === 'PENDING' ? 'PENDING' : 
                   normalizedStatus;
 
@@ -332,6 +509,11 @@ const ServicePage = () => {
 
   const displayRequests = serviceRequests.length > 0 ? serviceRequests : [];
   const displayFilteredRequests = serviceRequests.length > 0 ? filteredRequests : [];
+
+  // Count active requests
+  const activeRequestCount = serviceRequests.filter(request => 
+    request.status && !['RESOLVED', 'CANCELLED'].includes(request.status.toUpperCase())
+  ).length;
 
   return (
     <div style={{ padding: '2rem', backgroundColor: '#faf7f5', minHeight: '100vh' }}>
@@ -370,6 +552,11 @@ const ServicePage = () => {
                 marginBottom:'2rem'
               }}>
                 Submit and track your maintenance and service requests
+                {hasReachedRequestLimit() && (
+                  <span style={{ color: '#dc2626', fontWeight: 600, marginLeft: '1rem' }}>
+                    (Maximum of 3 active requests reached)
+                  </span>
+                )}
               </p>
               
               <button
@@ -394,7 +581,7 @@ const ServicePage = () => {
                 onMouseLeave={(e) => e.target.style.backgroundColor = '#7d2923'}
               >
                 <FontAwesomeIcon icon={faList} />
-                View My Requests
+                View My Requests ({activeRequestCount}/3 active)
               </button>
             </div>
           </div>
@@ -432,6 +619,11 @@ const ServicePage = () => {
                   ...typography.body,
                 }}>
                   Please fill out the form below to submit a service request.
+                  {hasReachedRequestLimit() && (
+                    <span style={{ color: '#dc2626', fontWeight: 600, display: 'block', marginTop: '0.5rem' }}>
+                      You have reached the maximum limit of 3 active service requests.
+                    </span>
+                  )}
                 </p>
               </div>
 
@@ -454,12 +646,13 @@ const ServicePage = () => {
                     value={formData.serviceType}
                     onChange={handleInputChange}
                     required
+                    disabled={hasReachedRequestLimit()}
                     style={{
                       width: '100%',
                       padding: '0.75rem',
                       border: '1px solid #e2d6cf',
                       borderRadius: '0.375rem',
-                      backgroundColor: '#ffffff',
+                      backgroundColor: hasReachedRequestLimit() ? '#f3f4f6' : '#ffffff',
                       ...typography.body,
                       height: '48px',
                     }}
@@ -467,7 +660,6 @@ const ServicePage = () => {
                     <option value="">Select service type...</option>
                     <option value="Plumbing">Plumbing</option>
                     <option value="Electrical">Electrical</option>
-                    <option value="HVAC">HVAC</option>
                     <option value="Furniture">Furniture Repair</option>
                     <option value="Wi-Fi">Wi-Fi Issue</option>
                     <option value="Cleaning">Cleaning</option>
@@ -489,7 +681,7 @@ const ServicePage = () => {
                         display: 'flex', 
                         alignItems: 'center', 
                         gap: '0.5rem',
-                        cursor: 'pointer',
+                        cursor: hasReachedRequestLimit() ? 'not-allowed' : 'pointer',
                       }}>
                         <input
                           type="radio"
@@ -497,16 +689,27 @@ const ServicePage = () => {
                           value={level}
                           checked={formData.priorityLvl === level}
                           onChange={handleInputChange}
+                          disabled={hasReachedRequestLimit()}
                           style={{ margin: 0 }}
                         />
                         <span style={{ 
                           ...typography.body,
-                          color: '#191919ff',
+                          color: hasReachedRequestLimit() ? '#9ca3af' : '#191919ff',
                           textTransform: 'capitalize'
                         }}>{level}</span>
                       </label>
                     ))}
                   </div>
+                  {formData.priorityLvl !== 'high' && (
+                    <p style={{ ...typography.small, color: '#6b7280', marginTop: '0.5rem', marginBottom: 0 }}>
+                      For {formData.priorityLvl} priority: Only weekdays (Mon-Fri) 9:00 AM - 5:00 PM
+                    </p>
+                  )}
+                  {formData.priorityLvl === 'high' && (
+                    <p style={{ ...typography.small, color: '#6b7280', marginTop: '0.5rem', marginBottom: 0 }}>
+                      For high priority: Any day and time available
+                    </p>
+                  )}
                 </div>
 
                 {/* Description */}
@@ -522,6 +725,7 @@ const ServicePage = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     required
+                    disabled={hasReachedRequestLimit()}
                     style={{
                       width: '100%',
                       flex: 1,
@@ -529,7 +733,7 @@ const ServicePage = () => {
                       padding: '0.75rem',
                       border: '1px solid #e2d6cf',
                       borderRadius: '0.375rem',
-                      backgroundColor: '#ffffff',
+                      backgroundColor: hasReachedRequestLimit() ? '#f3f4f6' : '#ffffff',
                       ...typography.body,
                       resize: 'vertical',
                     }}
@@ -551,16 +755,23 @@ const ServicePage = () => {
                       name="preferredDate"
                       value={formData.preferredDate}
                       onChange={handleInputChange}
+                      min={getMinDate()}
+                      disabled={hasReachedRequestLimit()}
                       style={{
                         width: '100%',
                         padding: '0.75rem',
-                        border: '1px solid #e2d6cf',
+                        border: formErrors.date ? '1px solid #dc2626' : '1px solid #e2d6cf',
                         borderRadius: '0.375rem',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: hasReachedRequestLimit() ? '#f3f4f6' : '#ffffff',
                         ...typography.body,
                         height: '48px',
                       }}
                     />
+                    {formErrors.date && (
+                      <p style={{ ...typography.small, color: '#dc2626', marginTop: '0.25rem', marginBottom: 0 }}>
+                        {formErrors.date}
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -571,23 +782,25 @@ const ServicePage = () => {
                       marginBottom: '0.5rem',
                     }}>Preferred Time</label>
                     <div 
-                      onClick={handleTimePickerToggle}
+                      onClick={hasReachedRequestLimit() ? undefined : handleTimePickerToggle}
                       style={{
                         width: '100%',
                         padding: '0.75rem',
-                        border: '1px solid #e2d6cf',
+                        border: formErrors.time ? '1px solid #dc2626' : '1px solid #e2d6cf',
                         borderRadius: '0.375rem',
-                        backgroundColor: '#ffffff',
+                        backgroundColor: hasReachedRequestLimit() ? '#f3f4f6' : '#ffffff',
                         ...typography.body,
                         height: '48px',
-                        cursor: 'pointer',
+                        cursor: hasReachedRequestLimit() ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                       }}
                     >
                       <span style={{ 
-                        color: formData.preferredTime ? '#191919ff' : '#928d8dff'
+                        color: formData.preferredTime ? 
+                          (hasReachedRequestLimit() ? '#9ca3af' : '#191919ff') : 
+                          (hasReachedRequestLimit() ? '#9ca3af' : '#928d8dff')
                       }}>
                         {formData.preferredTime ? 
                           `${formData.preferredTime} ${formData.timePeriod}` : 
@@ -595,6 +808,11 @@ const ServicePage = () => {
                         }
                       </span>
                     </div>
+                    {formErrors.time && (
+                      <p style={{ ...typography.small, color: '#dc2626', marginTop: '0.25rem', marginBottom: 0 }}>
+                        {formErrors.time}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -607,28 +825,29 @@ const ServicePage = () => {
                 }}>
                   <button
                     type="submit"
-                    disabled={submitting}
+                    disabled={submitting || hasReachedRequestLimit()}
                     style={{
                       padding: '0.75rem 2rem',
-                      backgroundColor: '#7d2923',
+                      backgroundColor: hasReachedRequestLimit() ? '#9ca3af' : '#7d2923',
                       color: '#ffffff',
                       border: 'none',
                       borderRadius: '0.375rem',
                       ...typography.body,
                       fontWeight: 510,
-                      cursor: submitting ? 'not-allowed' : 'pointer',
-                      opacity: submitting ? 0.6 : 1,
+                      cursor: (submitting || hasReachedRequestLimit()) ? 'not-allowed' : 'pointer',
+                      opacity: (submitting || hasReachedRequestLimit()) ? 0.6 : 1,
                       transition: 'background-color 0.2s',
                       minWidth: '200px',
                     }}
                     onMouseEnter={(e) => {
-                      if (!submitting) e.target.style.backgroundColor = '#6a221d';
+                      if (!submitting && !hasReachedRequestLimit()) e.target.style.backgroundColor = '#6a221d';
                     }}
                     onMouseLeave={(e) => {
-                      if (!submitting) e.target.style.backgroundColor = '#7d2923';
+                      if (!submitting && !hasReachedRequestLimit()) e.target.style.backgroundColor = '#7d2923';
                     }}
                   >
-                    {submitting ? 'Submitting...' : 'Submit Service Request'}
+                    {hasReachedRequestLimit() ? 'Request Limit Reached' : 
+                     submitting ? 'Submitting...' : 'Submit Service Request'}
                   </button>
                 </div>
               </form>
@@ -774,36 +993,68 @@ const ServicePage = () => {
               ...typography.heading,
               margin: 0,
             }}>
-              My Service Requests
+              My Service Requests ({activeRequestCount}/3 active)
             </h2>
             
             <div style={{
-              position: 'relative',
-              width: '300px',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'center',
             }}>
-              <span style={{
-                position: 'absolute',
-                left: '0.75rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#CD853F',
+              {/* Status Filter */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
               }}>
-                <FontAwesomeIcon icon={faSearch} />
-              </span>
-              <input
-                type="text"
-                placeholder="Search requests..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                  border: '1px solid #e2d6cf',
-                  borderRadius: '0.375rem',
-                  backgroundColor: '#ffffff',
-                  ...typography.small,
-                }}
-              />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  style={{
+                    padding: '0.5rem',
+                    border: '1px solid #e2d6cf',
+                    borderRadius: '0.375rem',
+                    backgroundColor: '#ffffff',
+                    ...typography.small,
+                    minWidth: '120px',
+                  }}
+                >
+                  <option value="ALL">All Status</option>
+                  <option value="PENDING">Pending</option>
+                  <option value="IN_PROGRESS">In Progress</option>
+                  <option value="RESOLVED">Resolved</option>
+                </select>
+              </div>
+
+              {/* Search Input */}
+              <div style={{
+                position: 'relative',
+                width: '250px',
+              }}>
+                <span style={{
+                  position: 'absolute',
+                  left: '0.75rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: '#CD853F',
+                }}>
+                  <FontAwesomeIcon icon={faSearch} />
+                </span>
+                <input
+                  type="text"
+                  placeholder="Search requests..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 0.75rem 0.75rem 2.5rem',
+                    border: '1px solid #e2d6cf',
+                    borderRadius: '0.375rem',
+                    backgroundColor: '#ffffff',
+                    ...typography.small,
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -937,7 +1188,9 @@ const ServicePage = () => {
                     color: '#191919ff',
                     ...typography.body,
                   }}>
-                    {searchTerm ? 'No service requests found matching your search.' : 'No service requests available.'}
+                    {searchTerm || statusFilter !== 'ALL' 
+                      ? 'No service requests found matching your criteria.' 
+                      : 'No service requests available.'}
                   </div>
                 )}
               </div>
@@ -983,7 +1236,7 @@ const ServicePage = () => {
         )}
       </div>
 
-      {/* Time Picker Dialog - Remains the same */}
+      {/* Time Picker Dialog */}
       {showTimePicker && (
         <div style={{
           position: 'fixed',
@@ -1020,7 +1273,7 @@ const ServicePage = () => {
                 cursor: 'pointer',
                 color: '#191919ff',
               }}>
-                
+                ×
               </button>
             </div>
             
@@ -1155,7 +1408,7 @@ const ServicePage = () => {
         </div>
       )}
 
-      {/* Detail Modal - Remains the same */}
+      {/* Detail Modal */}
       {showModal && selectedRequest && (
         <div style={{
           position: 'fixed',
@@ -1185,6 +1438,15 @@ const ServicePage = () => {
                 ...typography.subheading,
                 margin: 0,
               }}>Request Details</h3>
+              <button onClick={closeModal} style={{
+                background: 'none',
+                border: 'none',
+                fontSize: '1.25rem',
+                cursor: 'pointer',
+                color: '#191919ff',
+              }}>
+                ×
+              </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -1274,6 +1536,20 @@ const ServicePage = () => {
                   </div>
                 </div>
               </div>
+
+              {(selectedRequest.preferredDate || selectedRequest.preferredTime) && (
+                <div>
+                  <div style={{
+                    ...typography.label,
+                    color: '#000000',
+                    marginBottom: '0.5rem',
+                  }}>Preferred Schedule</div>
+                  <div style={{ color: '#191919ff', ...typography.body }}>
+                    {selectedRequest.preferredDate && formatDate(selectedRequest.preferredDate)}
+                    {selectedRequest.preferredTime && ` at ${selectedRequest.preferredTime}`}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div style={{

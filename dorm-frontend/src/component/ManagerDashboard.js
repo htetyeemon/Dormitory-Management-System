@@ -13,7 +13,8 @@ import {
   faUserPlus,
   faEye,
   faCheckToSlot,
-  faBullhorn
+  faBullhorn,
+  faExclamationTriangle
 } from '@fortawesome/free-solid-svg-icons';
 
 const ManagerDashboard = () => {
@@ -27,12 +28,13 @@ const ManagerDashboard = () => {
   const [expandedAnnouncements, setExpandedAnnouncements] = useState(new Set());
   const [pendingCheckIns, setPendingCheckIns] = useState(0);
   const [activeComplaints, setActiveComplaints] = useState(0);
+  const [expiringRequestsCount, setExpiringRequestsCount] = useState(0); // New state for expiring requests
 
   useEffect(() => {
     fetchDashboardData();
     fetchPendingCheckInsForDorm();
     fetchPendingComplaintsForDorm();
-  }, [managerId, announcementsUpdateTrigger]); // Add announcementsUpdateTrigger as dependency
+  }, [managerId, announcementsUpdateTrigger]);
 
   const fetchDashboardData = async () => {
     try {
@@ -55,12 +57,29 @@ const ManagerDashboard = () => {
           request.status === 'PENDING'
         );
         setPendingCheckIns(pendingRequests.length);
+        
+        // Calculate expiring requests (within 24 hours)
+        const now = new Date();
+        const expiringRequests = pendingRequests.filter(request => {
+          if (!request.date) return false;
+          
+          const requestDate = new Date(request.date);
+          const timeDiff = requestDate.getTime() - now.getTime();
+          const hoursDiff = timeDiff / (1000 * 60 * 60);
+          
+          // Requests that are within 24 hours from now
+          return hoursDiff <= 24 && hoursDiff >= 0;
+        });
+        
+        setExpiringRequestsCount(expiringRequests.length);
       } else {
         setPendingCheckIns(0);
+        setExpiringRequestsCount(0);
       }
     } catch (err) {
       console.error('Error fetching check-in/out requests:', err);
       setPendingCheckIns(0);
+      setExpiringRequestsCount(0);
     }
   };
 
@@ -95,10 +114,35 @@ const ManagerDashboard = () => {
     return description && description.length > 200;
   };
 
+  // Navigation handlers for stat cards
+  const handleAvailableRoomsClick = () => {
+    navigate(`/manager/${user.id}/rooms`, { 
+      state: { 
+        initialFilter: 'available'
+      } 
+    });
+  };
+
+  const handlePendingCheckInsClick = () => {
+    navigate(`/manager/${user.id}/checkinout`);
+  };
+
+  const handleActiveComplaintsClick = () => {
+    navigate(`/manager/${user.id}/complaints`);
+  };
+
   const cardStyle = {
     backgroundColor: '#ffffff',
     borderRadius: '0.75rem',
-    border: '1px solid #e8c8b5ff'
+    border: '1px solid #e8c8b5ff',
+    cursor: 'pointer',
+    transition: 'all 0.2s ease-in-out',
+  };
+
+  const statCardHoverStyle = {
+    backgroundColor: '#f9f5f3',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
   };
 
   const buttonStyle = {
@@ -188,6 +232,46 @@ const ManagerDashboard = () => {
           </p>
         </div>
 
+        {/* Expiring Requests Warning Banner */}
+        {expiringRequestsCount > 0 && (
+          <div style={{
+            backgroundColor: '#fef3f2',
+            border: '1px solid #fecaca',
+            borderRadius: '0.75rem',
+            padding: '1rem 1.5rem',
+            marginBottom: '2rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem'
+          }}>
+            <FontAwesomeIcon 
+              icon={faExclamationTriangle} 
+              style={{ 
+                color: '#dc2626',
+                fontSize: '1.25rem'
+              }} 
+            />
+            <div>
+              <p style={{
+                color: '#dc2626',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                margin: 0,
+                marginBottom: '0.25rem'
+              }}>
+                Urgent Action Required
+              </p>
+              <p style={{
+                color: '#991b1b',
+                fontSize: '0.875rem',
+                margin: 0
+              }}>
+                {expiringRequestsCount} pending check-in/out request{expiringRequestsCount !== 1 ? 's' : ''} {expiringRequestsCount === 1 ? 'is' : 'are'} about to expire within 24 hours. Please review them promptly.
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Stats Cards */}
         <div style={{
           display: 'grid',
@@ -195,7 +279,8 @@ const ManagerDashboard = () => {
           gap: '1.5rem',
           marginBottom: '2rem',
         }}>
-          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Total Students Card (Not clickable) */}
+          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'default' }}>
             <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faPeopleLine} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
@@ -207,7 +292,17 @@ const ManagerDashboard = () => {
             </div>
           </div>
 
-          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Available Rooms Card (Clickable) */}
+          <div 
+            style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}
+            onClick={handleAvailableRoomsClick}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, statCardHoverStyle)}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faWindowRestore} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
@@ -219,7 +314,45 @@ const ManagerDashboard = () => {
             </div>
           </div>
 
-          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Pending Check-ins Card (Clickable) */}
+          <div 
+            style={{ 
+              ...cardStyle, 
+              padding: '1.5rem', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '1rem',
+              position: 'relative'
+            }}
+            onClick={handlePendingCheckInsClick}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, statCardHoverStyle)}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            {/* Warning badge for expiring requests */}
+            {expiringRequestsCount > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: '-0.5rem',
+                right: '-0.5rem',
+                backgroundColor: '#dc2626',
+                color: 'white',
+                borderRadius: '50%',
+                width: '1.5rem',
+                height: '1.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.75rem',
+                fontWeight: 'bold',
+                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+              }}>
+                {expiringRequestsCount}
+              </div>
+            )}
             <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faAlarmClock} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
@@ -228,10 +361,30 @@ const ManagerDashboard = () => {
               <p style={{ color: '#69301cff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>
                 {pendingCheckIns}
               </p>
+              {expiringRequestsCount > 0 && (
+                <p style={{
+                  color: '#dc2626',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  margin: '0.25rem 0 0 0'
+                }}>
+                  {expiringRequestsCount} expiring soon!
+                </p>
+              )}
             </div>
           </div>
 
-          <div style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          {/* Active Complaints Card (Clickable) */}
+          <div 
+            style={{ ...cardStyle, padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1rem' }}
+            onClick={handleActiveComplaintsClick}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, statCardHoverStyle)}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = '#ffffff';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <span style={{ color: '#CD853F', fontSize: '2rem' }}><FontAwesomeIcon icon={faTriangleExclamation} /></span>
             <div>
               <p style={{ color: '#191919ff', fontSize: '1rem', fontWeight: 400, margin: 0 }}>
@@ -244,6 +397,7 @@ const ManagerDashboard = () => {
           </div>
         </div>
 
+        {/* Rest of your component remains exactly the same */}
         {/* Main Content Grid */}
         <div style={{
           display: 'grid',
@@ -258,6 +412,7 @@ const ManagerDashboard = () => {
             flexDirection: 'column',
             padding: '1.5rem',
             minHeight: '400px',
+            cursor: 'default',
           }}>
             <h2 style={{
               color: '#000000',
@@ -335,7 +490,7 @@ const ManagerDashboard = () => {
                           onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                           onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                         >
-                          {isExpanded ? 'Read Less ↑' : 'Read More ↓'}
+                          {isExpanded ? 'Read Less ?' : 'Read More ?'}
                         </button>
                       )}
                     </div>
@@ -369,6 +524,7 @@ const ManagerDashboard = () => {
               flexDirection: 'column',
               padding: '1.5rem',
               minHeight: '400px',
+              cursor: 'default',
             }}>
               <h3 style={{
                 color: '#000000',

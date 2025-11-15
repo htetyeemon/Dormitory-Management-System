@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { managerAPI } from '../service/api';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+import { faMagnifyingGlass, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons';
 
 const CheckInOutManagement = () => {
   const { user } = useAuth();
@@ -75,6 +75,19 @@ const CheckInOutManagement = () => {
     }
   };
 
+  // Check if a request is about to expire (within 24 hours)
+  const isRequestExpiring = (request) => {
+    if (request.status?.toUpperCase() !== 'PENDING') return false;
+    
+    const now = new Date();
+    const requestDate = new Date(request.date);
+    const timeDiff = requestDate.getTime() - now.getTime();
+    const hoursDiff = timeDiff / (1000 * 60 * 60);
+    
+    // Requests that are within 24 hours from now and not in the past
+    return hoursDiff <= 24 && hoursDiff >= 0;
+  };
+
   const filterRequests = () => {
     if (!searchTerm.trim()) {
       setFilteredRequests(requests);
@@ -124,7 +137,11 @@ const CheckInOutManagement = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, isExpiring = false) => {
+    if (isExpiring) {
+      return 'status-badge status-urgent';
+    }
+
     switch (status?.toUpperCase()) {
       case 'PENDING':
         return 'status-badge status-pending';
@@ -255,43 +272,78 @@ const CheckInOutManagement = () => {
             </thead>
             <tbody className="table-body">
               {currentItems.length > 0 ? (
-                currentItems.map((request) => (
-                  <tr key={request.id} className="table-row">
-                    <td className="table-cell student-name">
-                      {request.studentName}
-                    </td>
-                    <td className="table-cell room-number">
-                      {request.roomNum}
-                    </td>
-                    <td className="table-cell request-type">
-                      {getRequestTypeText(request.type)}
-                    </td>
-                    <td className="table-cell date">
-                      {formatDate(request.date)}
-                    </td>
-                    <td className="table-cell status">
-                      <span className={getStatusBadge(request.status)}>
+                currentItems.map((request) => {
+                  const isExpiring = isRequestExpiring(request);
+                  return (
+                    <tr key={request.id} className={`table-row ${isExpiring ? 'urgent-row' : ''}`}>
+                      <td className="table-cell student-name">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {isExpiring && (
+                            <FontAwesomeIcon 
+                              icon={faExclamationTriangle} 
+                              style={{ 
+                                color: '#dc2626',
+                                fontSize: '0.875rem'
+                              }} 
+                            />
+                          )}
+                          {request.studentName}
+                          {isExpiring && (
+                            <span style={{
+                              fontSize: '0.75rem',
+                              color: '#dc2626',
+                              fontWeight: '600',
+                              marginLeft: '0.25rem'
+                            }}>
+                              (Urgent)
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell room-number">
+                        {request.roomNum}
+                      </td>
+                      <td className="table-cell request-type">
+                        {getRequestTypeText(request.type)}
+                      </td>
+                      <td className="table-cell date">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          {formatDate(request.date)}
+                          {isExpiring && (
+                            <span style={{
+                              fontSize: '0.75rem',
+                              color: '#dc2626',
+                              fontWeight: '600'
+                            }}>
+                                Expiring soon!
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="table-cell status">
+                         <span className={getStatusBadge(request.status)}>
                         {request.status || 'PENDING'}
                       </span>
-                    </td>
-                    <td className="table-cell actions">
-                      <button
-                        onClick={() => handleApprove(request.id)}
-                        disabled={request.status !== 'PENDING' || actionLoading === request.id}
-                        className="btn-approve"
-                      >
-                        {actionLoading === request.id ? '...' : 'Approve'}
-                      </button>
-                      <button
-                        onClick={() => handleReject(request.id)}
-                        disabled={request.status !== 'PENDING' || actionLoading === request.id}
-                        className="btn-reject"
-                      >
-                        {actionLoading === request.id ? '...' : 'Reject'}
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="table-cell actions">
+                        <button
+                          onClick={() => handleApprove(request.id)}
+                          disabled={request.status !== 'PENDING' || actionLoading === request.id}
+                          className="btn-approve"
+                        >
+                          {actionLoading === request.id ? '...' : 'Approve'}
+                        </button>
+                        <button
+                          onClick={() => handleReject(request.id)}
+                          disabled={request.status !== 'PENDING' || actionLoading === request.id}
+                          className="btn-reject"
+                        >
+                          {actionLoading === request.id ? '...' : 'Reject'}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr className="table-row">
                   <td colSpan="6" className="table-cell no-data">
@@ -347,7 +399,7 @@ const CheckInOutManagement = () => {
                   }
                 }}
               >
-                ←
+                ?
               </button>
 
               {/* Page Numbers */}
@@ -412,7 +464,7 @@ const CheckInOutManagement = () => {
                   }
                 }}
               >
-                 →
+                 ?
               </button>
             </nav>
           </div>
@@ -538,6 +590,15 @@ const CheckInOutManagement = () => {
           background-color: #faf7f5;
         }
 
+        .urgent-row {
+          background-color: #fef2f2 !important;
+          border-left: 4px solid #dc2626;
+        }
+
+        .urgent-row:hover {
+          background-color: #fee2e2 !important;
+        }
+
         .table-row:last-child {
           border-bottom: none;
         }
@@ -588,6 +649,13 @@ const CheckInOutManagement = () => {
         .status-rejected {
           background-color: #fee2e2;
           color: #dc2626;
+        }
+
+        .status-urgent {
+          background-color: #fef3f2;
+          color: #dc2626;
+          border: 1px solid #fecaca;
+          font-weight: 600;
         }
 
         .actions {
