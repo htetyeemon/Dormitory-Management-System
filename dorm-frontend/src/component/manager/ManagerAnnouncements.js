@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useAnnouncements } from '../context/AnnouncementsContext';
-import { managerAPI } from '../service/api';
+import { useAuth } from '../../context/AuthContext';
+import { useAnnouncements } from '../../context/AnnouncementsContext';
+import { managerAPI } from '../../service/api';
 import { useParams, useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBullhorn, faSquarePlus, faSearch, faCalendarDays, faSort, faTimes } from '@fortawesome/free-solid-svg-icons';

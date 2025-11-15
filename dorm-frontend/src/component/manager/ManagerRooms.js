@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { managerAPI } from '../service/api';
-import { useParams } from 'react-router-dom';
-import "../css/ManagerRooms.css";
+import { useAuth } from '../../context/AuthContext';
+import { managerAPI } from '../../service/api';
+import { useLocation, useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faCircleXmark, 
@@ -20,7 +19,8 @@ const ManagerRooms = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const location = useLocation();
+  //const [filterStatus, setFilterStatus] = useState('all');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showRemoveModal, setShowRemoveModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -28,13 +28,17 @@ const ManagerRooms = () => {
   const [studentSearch, setStudentSearch] = useState('');
   const [availableStudents, setAvailableStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [sortOrder, setSortOrder] = useState('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const roomsPerPage = 6;
+  const [filterStatus, setFilterStatus] = useState(
+    location.state?.initialFilter || 'all'  // ? This goes in ManagerRooms
+  );
 
   useEffect(() => {
     fetchRooms();
   }, [managerId]);
+
+  
 
   const fetchRooms = async () => {
     try {
@@ -54,29 +58,20 @@ const ManagerRooms = () => {
     setCurrentPage(1);
   };
 
-  const handleSortChange = (e) => {
-    setSortOrder(e.target.value);
-    setCurrentPage(1);
-  };
-
   const filteredRooms = rooms
     .filter(room => {
       const matchesSearch = room.roomNum.toLowerCase().includes(searchTerm.toLowerCase());
-      const isOccupied = room.students && room.students.length > 0;
+      const isOccupied = room.occupancy <2  ;
+      const isFullCapacity = room.occupancy ==2;
       
       if (filterStatus === 'all') return matchesSearch;
-      if (filterStatus === 'occupied') return matchesSearch && isOccupied;
-      if (filterStatus === 'available') return matchesSearch && !isOccupied;
+      if (filterStatus === 'available') return matchesSearch && isOccupied;
+      if (filterStatus === 'occupied') return matchesSearch && isFullCapacity;
       
       return matchesSearch;
     })
-    .sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.roomNum.localeCompare(b.roomNum);
-      } else {
-        return b.roomNum.localeCompare(a.roomNum);
-      }
-    });
+    .sort((a, b) => a.roomNum.localeCompare(b.roomNum));
+    
 
   // Pagination
   const totalPages = Math.ceil(filteredRooms.length / roomsPerPage);
@@ -242,7 +237,7 @@ const ManagerRooms = () => {
           <h1 style={{
             color: '#000000',
             fontSize: '2.25rem',
-            fontWeight: 900,
+            fontWeight: 600,
             lineHeight: 1.25,
             letterSpacing: '-0.033em',
             marginBottom: '0.5rem',
@@ -258,7 +253,7 @@ const ManagerRooms = () => {
           </p>
         </div>
 
-        {/* Search and Sort Controls */}
+        {/* Filter and Search Controls */}
         <div style={{
           display: 'flex',
           flexWrap: 'wrap',
@@ -310,14 +305,14 @@ const ManagerRooms = () => {
             />
           </div>
 
-          {/* Sort Dropdown */}
+          {/* Filter Dropdown */}
           <div style={{
             position: 'relative',
             minWidth: '192px'
           }}>
             <select
-              value={sortOrder}
-              onChange={handleSortChange}
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value)}
               style={{
                 width: '100%',
                 minWidth: '0',
@@ -339,8 +334,9 @@ const ManagerRooms = () => {
               onFocus={(e) => e.target.style.borderColor = '#7d2923'}
               onBlur={(e) => e.target.style.borderColor = '#e8c8b5ff'}
             >
-              <option value="asc">Room Number (Ascending)</option>
-              <option value="desc">Room Number (Descending)</option>
+              <option value="all">All Rooms</option>
+              <option value="available">Available Rooms</option>
+              <option value="occupied">Full Capacity Rooms</option>
             </select>
             <span style={{
               position: 'absolute',
@@ -529,7 +525,7 @@ const ManagerRooms = () => {
                   }
                 }}
               >
-                ←
+                ?
               </button>
 
               {/* Page Numbers */}
@@ -594,7 +590,7 @@ const ManagerRooms = () => {
                   }
                 }}
               >
-                →
+                ?
               </button>
             </nav>
           </div>

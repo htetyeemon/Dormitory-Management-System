@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useAnnouncements } from '../context/AnnouncementsContext';
-import { managerAPI } from '../service/api';
+import { useAuth } from '../../context/AuthContext';
+import { useAnnouncements } from '../../context/AnnouncementsContext';
+import { managerAPI } from '../../service/api';
 import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';

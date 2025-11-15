@@ -1,7 +1,7 @@
 // src/component/RoomPage.js
 import React, { useEffect, useState } from "react";
-import { studentAPI } from "../service/api";
-import { useAuth } from "../context/AuthContext";
+import { studentAPI } from "../../service/api";
+import { useAuth } from "../../context/AuthContext";
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {

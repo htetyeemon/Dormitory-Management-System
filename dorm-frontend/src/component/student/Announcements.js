@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useAnnouncements } from '../context/AnnouncementsContext';
-import { studentAPI } from '../service/api';
+import { useAuth } from '../../context/AuthContext';
+import { useAnnouncements } from '../../context/AnnouncementsContext';
+import { studentAPI } from '../../service/api';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch, faSort, faBullhorn, faCalendarAlt } from '@fortawesome/free-solid-svg-icons';

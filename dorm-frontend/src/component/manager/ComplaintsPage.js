@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { managerAPI } from '../service/api';
+import { useAuth } from '../../context/AuthContext';
+import { managerAPI } from '../../service/api';
 import { useParams } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch,faWrench, faSort, faTimes} from '@fortawesome/free-solid-svg-icons';
